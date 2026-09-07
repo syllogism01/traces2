@@ -1,0 +1,57 @@
+Dr. Jekyll and Mr. Hyde (NES)
+Enemy spawn logic
+(Note this is mostly when playing as Jekyll but plenty of overlap with Hyde too.)
+
+TLDR: There are three spawn systems. The first depends on what part of a stage you’re scrolling into, the second is more like a lottery, and the third is an extra ‘bomb man’ specific spawner.
+
+The list. Every stage has a list, one entry for every 32 pixels of scrolling. Each entry is a type of enemy. As the screen scrolls, it reads the next entry and spawns that enemy if it can. The list is fixed, so these spawns are guaranteed provided a set of checks all pass.
+
+
+The lottery. Once every 4-5 frames the game rolls a pair of dice to spawn an enemy if a set of checks all pass. Player input changes the dice – not directly, but by giving the game more or less work to do, which can change when the dice “roll” (and why I think it’s probably futile to try and engineer a non-TAS setup).
+
+
+The bomb. Like the lottery, it runs once every 4-5 frames and keeps its own counter. Once it reaches a value (~every 14 seconds), a bomb man is spawned if you’re in a part of a stage where he can spawn (and all the other checks pass). In the final stage, the counter is ignored, so he can just respawn immediately. Note: bomb man can also spawn via the list system, so this 3rd system seems to be a way to ensure that he (and only he) will spawn repeatedly within certain areas.
+
+Read on for a more in-depth explanation…
+SYSTEM 1 - THE LIST
+I like to think of it as a filmstrip attached to the stage moving along with it. A new frame of film every 32 pixels, and in that frame is a single enemy. So, e.g.,: …..nothing, nothing, cat, nothing, dog, bee, nothing…..
+
+There’s a different filmstrip for each stage and mode (Jekyll vs. Hyde). More accurately, each film frame is more like a note about the enemy, specifying “what”, not “where.” Each enemy’s code itself determines left vs right spawn, for example.
+
+Importantly, scrolling into a new film frame doesn’t guarantee a spawn, it just means the spawn check triggers (so 8 possible triggers per screen-width). Multiple additional checks must pass for the spawn to happen. These include things like: is the enemy not already alive? Is there room for them? So, for example, if a film frame triggers and it says “dog”, but there’s already a dog spawned, then no new spawn happens. (And most enemies have a max of 1, but there’s exceptions like spiders (2) and bees (4).)
+
+In the US ROM, there are 3 list entries whose spawns have been disabled. One is the women who throw things at each other from the windows. Not sure what the other two are.
+SYSTEM 2 - THE LOTTERY
+You can think of part of the game’s workload as sections on a racetrack. Each lap takes 4-5 frames. The lottery spawn system is one job on the track, so it gets one turn every 4-5 frames. (Player movement is another job on the track, which is why the controls feel clunky; and let’s not even go near the madness of the stage 6 ‘speedup’ – DisplacedGamers already explained that beautifully).
+
+When the spawn manager gets its turn, it asks four questions. Any answer of “no” ends the turn immediately with nothing spawned.
+Is this stage one that spawns anything via this system? Only stages 1, 3, and 4 use the lottery system.
+Is Jekyll in the right part of the level? Each stage allows spawns only in specific sections. (In fact, for most of the game the lottery system isn’t used.)
+Did the dice roll appropriately? A bit complicated, but one reduces to a coin-flip, so about half of all turns spawn nothing. A second, stricter test on the same counter passes about a quarter of the time. When both pass, the 2nd dice’s roll is used to select 1 of 3 enemies. The values are not equally likely –  the man and woman are about twice as likely compared to Billy. (Side note: the dice also determine what the enemy looks like, via sprite set and palette.)
+Is there room? Even if the first 3 all passed, the spawn is still going to get locked out here a lot of the time. Each spawned enemy has an “alive” flag, and while it’s set, that enemy can’t spawn again (a few enemies have a different “# alive” cap, as discussed). Enemies also share sprite slots, and those need to be free too. Some are mutually exclusive. You can’t have both a lottery-spawned Billy and a lottery-spawned man, for example. There’s cross-checking with system 1’s spawns too, eliminating even more possibilities.
+
+When all 4 questions answer “yes”, an enemy spawns. At 4-5 frames per turn, that’s ~13-14 spawn attempts per second – and the majority of those will fail.
+
+One interesting extra bit of info: When the bomb man drops his bomb, it temporarily switches off the lottery spawn system (and makes the townspeople fast & dangerous). It turns back on after about 3.5 seconds.
+SYSTEM 3 - THE BOMB
+On the same track as the lottery, so it gets a turn every 4-5 frames. It increments a counter that triggers a bomb man spawn check every ~14 seconds. The check runs through some questions: Is the bomb man already alive? Is there room for him? Is Jekyll in a particular section of the stage? If the answer is yes to all, a bomb man is spawned.
+
+Note that this system is a recurring timer, not a lottery or a single scroll trigger. Stand still in a part of a stage where bomb man can spawn (via this system), and he’ll spawn infinitely every ~14 seconds (but only 1 at a time, of course).
+
+Note also that stage six drops the timer, so the spawn attempt runs every lap – that’s why in 3 certain sections of stage six he comes back as soon as he leaves.
+THE DICE AREN’T REALLY DICE
+The two memory values we’ve been calling dice are updated by a small routine that runs every frame (during NMI). But it’s not really a random-number generator. During the routine, the game fetches a number and adds it to dice #1, then fetches another number and adds it to dice #2. But it gets these numbers from its own program code (interpreted as numbers), and because the game uses bank switching, the numbers that come back give the impression of randomness – even though they are deterministic. (If you waited ~18 minutes, they’d loop, returning to their starting values.)
+
+While it might be technically true that it’s not random, it’s unhelpful for normal play because of the previously mentioned input phase perturbation (sorry, I know that sounds horrible, but all I mean is that input throws off the ‘cycle’ or ‘when the dice roll’).
+
+It does mean you could calculate the entire sequence for TAS manipulation, if you really wanted to (no thanks).
+HOW INPUT CHANGES THE LOTTERY
+Put simply, input can change how much work a frame does, which can increase or decrease the likelihood that the dice updating routine runs. That’s because the NMI has an alternative path it can take that skips a whole bunch of work if it happens to run when the game is in the middle of certain other work – and surprise surprise, some of the work it skips is the dice update routine. That’s why input causes the dice “phase” to shift.
+
+Put another way: When the game is “busy”, it doesn’t update the dice, and player input can shift when a “busy” frame lands.
+ENEMY TYPES PER SYSTEM
+(treat with a grain of salt, might not be 100% accurate)
+
+The LIST: cat, dog, bee, singer, spiders, bomb man, bird
+The LOTTERY: man, woman, Billy, barrels
+The BOMB: bomb man
