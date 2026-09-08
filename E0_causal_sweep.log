@@ -1,0 +1,1581 @@
+
+============================================================
+Dr. Jekyll and Mr. Hyde - E0 causal sweep
+============================================================
+Baseline frame: 2404
+Freeze frames: 2404 through 2410
+E0 values per freeze frame: 14
+Forced DF: $08
+Output file: E0_causal_sweep.log
+
+Beginning automated experiment...
+
+============================================================
+TRIAL  freeze_frame=2404  E0=$00  DF=$08
+Starting emulator frame: 2404
+============================================================
+[f002406] C726: queue object $26
+[f002406] C726: queue object $5E
+[f002406] C726: queue object $01
+[f002406] C726: queue object $4B
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$00  DF=$08
+C726 objects: $26, $5E, $01, $4B, $09, $45
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2404  E0=$01  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002406] C726: queue object $26
+[f002406] C726: queue object $5E
+[f002406] C726: queue object $01
+[f002406] C726: queue object $4B
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$01  DF=$08
+C726 objects: $26, $5E, $01, $4B, $09, $45
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2404  E0=$05  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002406] C726: queue object $26
+[f002406] C726: queue object $5E
+[f002406] C726: queue object $01
+[f002406] C726: queue object $4B
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$05  DF=$08
+C726 objects: $26, $5E, $01, $4B, $09, $45
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2404  E0=$08  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002406] C726: queue object $26
+[f002406] C726: queue object $5E
+[f002406] C726: queue object $01
+[f002406] C726: queue object $4B
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$08  DF=$08
+C726 objects: $26, $5E, $01, $4B, $09, $45
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2404  E0=$10  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002406] C726: queue object $26
+[f002406] C726: queue object $5E
+[f002406] C726: queue object $01
+[f002406] C726: queue object $4B
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$10  DF=$08
+C726 objects: $26, $5E, $01, $4B, $09, $45
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2404  E0=$20  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002406] C726: queue object $26
+[f002406] C726: queue object $5E
+[f002406] C726: queue object $01
+[f002406] C726: queue object $4B
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$20  DF=$08
+C726 objects: $26, $5E, $01, $4B, $09, $45
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2404  E0=$35  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002406] C726: queue object $26
+[f002406] C726: queue object $5E
+[f002406] C726: queue object $01
+[f002406] C726: queue object $4B
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$35  DF=$08
+C726 objects: $26, $5E, $01, $4B, $09, $45
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2404  E0=$40  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002406] C726: queue object $26
+[f002406] C726: queue object $5E
+[f002406] C726: queue object $01
+[f002406] C726: queue object $4B
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$40  DF=$08
+C726 objects: $26, $5E, $01, $4B, $09, $45
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2404  E0=$55  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002406] C726: queue object $26
+[f002406] C726: queue object $5E
+[f002406] C726: queue object $01
+[f002406] C726: queue object $4B
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$55  DF=$08
+C726 objects: $26, $5E, $01, $4B, $09, $45
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2404  E0=$76  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002406] C726: queue object $26
+[f002406] C726: queue object $5E
+[f002406] C726: queue object $01
+[f002406] C726: queue object $4B
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$76  DF=$08
+C726 objects: $26, $5E, $01, $4B, $09, $45
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2404  E0=$80  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002406] C726: queue object $26
+[f002406] C726: queue object $5E
+[f002406] C726: queue object $01
+[f002406] C726: queue object $4B
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$80  DF=$08
+C726 objects: $26, $5E, $01, $4B, $09, $45
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2404  E0=$A0  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002406] C726: queue object $26
+[f002406] C726: queue object $5E
+[f002406] C726: queue object $01
+[f002406] C726: queue object $4B
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$A0  DF=$08
+C726 objects: $26, $5E, $01, $4B, $09, $45
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2404  E0=$F0  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002406] C726: queue object $26
+[f002406] C726: queue object $5E
+[f002406] C726: queue object $01
+[f002406] C726: queue object $4B
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$F0  DF=$08
+C726 objects: $26, $5E, $01, $4B, $09, $45
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2404  E0=$FF  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002406] C726: queue object $26
+[f002406] C726: queue object $5E
+[f002406] C726: queue object $01
+[f002406] C726: queue object $4B
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$FF  DF=$08
+C726 objects: $26, $5E, $01, $4B, $09, $45
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2405  E0=$00  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002406] C726: queue object $26
+[f002406] C726: queue object $5E
+[f002406] C726: queue object $01
+[f002406] C726: queue object $4B
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$00  DF=$08
+C726 objects: $26, $5E, $01, $4B, $09, $45
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2405  E0=$01  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002406] C726: queue object $26
+[f002406] C726: queue object $5E
+[f002406] C726: queue object $01
+[f002406] C726: queue object $4B
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$01  DF=$08
+C726 objects: $26, $5E, $01, $4B, $09, $45
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2405  E0=$05  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002406] C726: queue object $26
+[f002406] C726: queue object $5E
+[f002406] C726: queue object $01
+[f002406] C726: queue object $4B
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$05  DF=$08
+C726 objects: $26, $5E, $01, $4B, $09, $45
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2405  E0=$08  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002406] C726: queue object $26
+[f002406] C726: queue object $5E
+[f002406] C726: queue object $01
+[f002406] C726: queue object $4B
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$08  DF=$08
+C726 objects: $26, $5E, $01, $4B, $09, $45
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2405  E0=$10  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002406] C726: queue object $26
+[f002406] C726: queue object $5E
+[f002406] C726: queue object $01
+[f002406] C726: queue object $4B
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$10  DF=$08
+C726 objects: $26, $5E, $01, $4B, $09, $45
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2405  E0=$20  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002406] C726: queue object $26
+[f002406] C726: queue object $5E
+[f002406] C726: queue object $01
+[f002406] C726: queue object $4B
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$20  DF=$08
+C726 objects: $26, $5E, $01, $4B, $09, $45
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2405  E0=$35  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002406] C726: queue object $26
+[f002406] C726: queue object $5E
+[f002406] C726: queue object $01
+[f002406] C726: queue object $4B
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$35  DF=$08
+C726 objects: $26, $5E, $01, $4B, $09, $45
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2405  E0=$40  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002406] C726: queue object $26
+[f002406] C726: queue object $5E
+[f002406] C726: queue object $01
+[f002406] C726: queue object $4B
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$40  DF=$08
+C726 objects: $26, $5E, $01, $4B, $09, $45
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2405  E0=$55  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002406] C726: queue object $26
+[f002406] C726: queue object $5E
+[f002406] C726: queue object $01
+[f002406] C726: queue object $4B
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$55  DF=$08
+C726 objects: $26, $5E, $01, $4B, $09, $45
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2405  E0=$76  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002406] C726: queue object $26
+[f002406] C726: queue object $5E
+[f002406] C726: queue object $01
+[f002406] C726: queue object $4B
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$76  DF=$08
+C726 objects: $26, $5E, $01, $4B, $09, $45
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2405  E0=$80  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002406] C726: queue object $26
+[f002406] C726: queue object $5E
+[f002406] C726: queue object $01
+[f002406] C726: queue object $4B
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$80  DF=$08
+C726 objects: $26, $5E, $01, $4B, $09, $45
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2405  E0=$A0  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002406] C726: queue object $26
+[f002406] C726: queue object $5E
+[f002406] C726: queue object $01
+[f002406] C726: queue object $4B
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$A0  DF=$08
+C726 objects: $26, $5E, $01, $4B, $09, $45
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2405  E0=$F0  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002406] C726: queue object $26
+[f002406] C726: queue object $5E
+[f002406] C726: queue object $01
+[f002406] C726: queue object $4B
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$F0  DF=$08
+C726 objects: $26, $5E, $01, $4B, $09, $45
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2405  E0=$FF  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002406] C726: queue object $26
+[f002406] C726: queue object $5E
+[f002406] C726: queue object $01
+[f002406] C726: queue object $4B
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$FF  DF=$08
+C726 objects: $26, $5E, $01, $4B, $09, $45
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2406  E0=$00  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$00  DF=$08
+C726 objects: $09, $26, $5E, $45, $01, $4B
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2406  E0=$01  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$01  DF=$08
+C726 objects: $09, $26, $5E, $45, $01, $4B
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2406  E0=$05  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$05  DF=$08
+C726 objects: $09, $26, $5E, $45, $01, $4B
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2406  E0=$08  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$08  DF=$08
+C726 objects: $09, $26, $5E, $45, $01, $4B
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2406  E0=$10  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$10  DF=$08
+C726 objects: $09, $26, $5E, $45, $01, $4B
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2406  E0=$20  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$20  DF=$08
+C726 objects: $09, $26, $5E, $45, $01, $4B
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2406  E0=$35  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$35  DF=$08
+C726 objects: $09, $26, $5E, $45, $01, $4B
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2406  E0=$40  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$40  DF=$08
+C726 objects: $09, $26, $5E, $45, $01, $4B
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2406  E0=$55  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$55  DF=$08
+C726 objects: $09, $26, $5E, $45, $01, $4B
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2406  E0=$76  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$76  DF=$08
+C726 objects: $09, $26, $5E, $45, $01, $4B
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2406  E0=$80  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$80  DF=$08
+C726 objects: $09, $26, $5E, $45, $01, $4B
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2406  E0=$A0  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$A0  DF=$08
+C726 objects: $09, $26, $5E, $45, $01, $4B
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2406  E0=$F0  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$F0  DF=$08
+C726 objects: $09, $26, $5E, $45, $01, $4B
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2406  E0=$FF  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002407] C726: queue object $09
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$FF  DF=$08
+C726 objects: $09, $26, $5E, $45, $01, $4B
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2407  E0=$00  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$00  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2407  E0=$01  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$01  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2407  E0=$05  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$05  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2407  E0=$08  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$08  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2407  E0=$10  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$10  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2407  E0=$20  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$20  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2407  E0=$35  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$35  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2407  E0=$40  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$40  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2407  E0=$55  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$55  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2407  E0=$76  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$76  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2407  E0=$80  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$80  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2407  E0=$A0  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$A0  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2407  E0=$F0  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$F0  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2407  E0=$FF  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$FF  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2408  E0=$00  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$00  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2408  E0=$01  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$01  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2408  E0=$05  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$05  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2408  E0=$08  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$08  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2408  E0=$10  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$10  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2408  E0=$20  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$20  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2408  E0=$35  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$35  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2408  E0=$40  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$40  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2408  E0=$55  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$55  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2408  E0=$76  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$76  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2408  E0=$80  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$80  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2408  E0=$A0  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$A0  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2408  E0=$F0  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$F0  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2408  E0=$FF  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$FF  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2409  E0=$00  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$00  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2409  E0=$01  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$01  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2409  E0=$05  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$05  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2409  E0=$08  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$08  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2409  E0=$10  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$10  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2409  E0=$20  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$20  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2409  E0=$35  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$35  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2409  E0=$40  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$40  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2409  E0=$55  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$55  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2409  E0=$76  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$76  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2409  E0=$80  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$80  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2409  E0=$A0  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$A0  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2409  E0=$F0  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$F0  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2409  E0=$FF  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002410] C726: queue object $26
+[f002410] C726: queue object $5E
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$FF  DF=$08
+C726 objects: $26, $5E, $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2410  E0=$00  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$00  DF=$08
+C726 objects: $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2410  E0=$01  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$01  DF=$08
+C726 objects: $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2410  E0=$05  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$05  DF=$08
+C726 objects: $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2410  E0=$08  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$08  DF=$08
+C726 objects: $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2410  E0=$10  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$10  DF=$08
+C726 objects: $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2410  E0=$20  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$20  DF=$08
+C726 objects: $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2410  E0=$35  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$35  DF=$08
+C726 objects: $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2410  E0=$40  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$40  DF=$08
+C726 objects: $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2410  E0=$55  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$55  DF=$08
+C726 objects: $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2410  E0=$76  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$76  DF=$08
+C726 objects: $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2410  E0=$80  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$80  DF=$08
+C726 objects: $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2410  E0=$A0  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$A0  DF=$08
+C726 objects: $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2410  E0=$F0  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$F0  DF=$08
+C726 objects: $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+============================================================
+TRIAL  freeze_frame=2410  E0=$FF  DF=$08
+Starting emulator frame: 2405
+============================================================
+[f002411] C726: queue object $45
+[f002411] C726: queue object $01
+[f002411] C726: queue object $4B
+[f002411] C726: queue object $09
+OBSERVE frame=2411  E0=$FF  DF=$08
+C726 objects: $45, $01, $4B, $09
+E673: none
+E673 C2DA targets: none
+
+
+################################################################
+# E0 CAUSAL SWEEP COMPLETE
+################################################################
+
+---------------- FREEZE FRAME 2404 ----------------
+Distinct outcomes: 1
+  Group 1 E0 values: $00, $01, $05, $08, $10, $20, $35, $40, $55, $76, $80, $A0, $F0, $FF
+      C726: [$26, $5E, $01, $4B, $09, $45]
+      E673: []
+      Targets: []
+
+---------------- FREEZE FRAME 2405 ----------------
+Distinct outcomes: 1
+  Group 1 E0 values: $00, $01, $05, $08, $10, $20, $35, $40, $55, $76, $80, $A0, $F0, $FF
+      C726: [$26, $5E, $01, $4B, $09, $45]
+      E673: []
+      Targets: []
+
+---------------- FREEZE FRAME 2406 ----------------
+Distinct outcomes: 1
+  Group 1 E0 values: $00, $01, $05, $08, $10, $20, $35, $40, $55, $76, $80, $A0, $F0, $FF
+      C726: [$09, $26, $5E, $45, $01, $4B]
+      E673: []
+      Targets: []
+
+---------------- FREEZE FRAME 2407 ----------------
+Distinct outcomes: 1
+  Group 1 E0 values: $00, $01, $05, $08, $10, $20, $35, $40, $55, $76, $80, $A0, $F0, $FF
+      C726: [$26, $5E, $45, $01, $4B, $09]
+      E673: []
+      Targets: []
+
+---------------- FREEZE FRAME 2408 ----------------
+Distinct outcomes: 1
+  Group 1 E0 values: $00, $01, $05, $08, $10, $20, $35, $40, $55, $76, $80, $A0, $F0, $FF
+      C726: [$26, $5E, $45, $01, $4B, $09]
+      E673: []
+      Targets: []
+
+---------------- FREEZE FRAME 2409 ----------------
+Distinct outcomes: 1
+  Group 1 E0 values: $00, $01, $05, $08, $10, $20, $35, $40, $55, $76, $80, $A0, $F0, $FF
+      C726: [$26, $5E, $45, $01, $4B, $09]
+      E673: []
+      Targets: []
+
+---------------- FREEZE FRAME 2410 ----------------
+Distinct outcomes: 1
+  Group 1 E0 values: $00, $01, $05, $08, $10, $20, $35, $40, $55, $76, $80, $A0, $F0, $FF
+      C726: [$45, $01, $4B, $09]
+      E673: []
+      Targets: []
+
+################################################################
+# CAUSAL CUTOFF
+################################################################
+Freeze frame 2404: no observable E0-dependent variation.
+Freeze frame 2405: no observable E0-dependent variation.
+Freeze frame 2406: no observable E0-dependent variation.
+Freeze frame 2407: no observable E0-dependent variation.
+Freeze frame 2408: no observable E0-dependent variation.
+Freeze frame 2409: no observable E0-dependent variation.
+Freeze frame 2410: no observable E0-dependent variation.
+
+No E0-dependent variation was detected.
+
+################################################################
+# LOG FILE: E0_causal_sweep.log
+################################################################
