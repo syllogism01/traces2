@@ -1,0 +1,1344 @@
+Disciples of Steel — Combat Damage Reverse-Engineering Record
+Executable: STEEL(10).EXE
+Purpose: LLM handoff / continuation of a byte-level disassembly of the combat damage routine
+
+STATUS AND METHODOLOGY
+======================
+
+This document records the executable-backed findings established so far. It deliberately separates:
+  1. exact assembly/data facts,
+  2. algebraic reconstructions that follow directly from those instructions,
+  3. gameplay-facing interpretations supported by direct evidence,
+  4. unresolved links.
+
+Physical EXE offsets and runtime segment:offset addresses must not be conflated.
+
+The resident image has an MZ header with e_cparhdr = 0x2BC, so ordinary resident-image physical conversion is:
+    physical = image_offset + 0x2BC0
+
+The executable is 759404 bytes (0xB966C).
+
+Blinker overlays are present. In particular:
+    blCOMBAT1 ~ physical 0x2C5F0
+    blCCOMBAT ~ physical 0x7706A
+    blCOMBAT2 ~ physical 0x7C46C
+    blCOMBAT3 ~ physical 0x9D808
+
+Runtime far addresses such as 1E11:xxxx, 0853:xxxx, or 0000:3D6E must not be converted to physical offsets by the ordinary +0x2BC0 rule. Blinker vector slots are resolved/managed at runtime.
+
+EXECUTIVE DAMAGE PIPELINE
+=========================
+
+The currently proven chain is:
+
+    encoded combat/source record
+             |
+             v
+        handler/case 51
+             |
+             v
+       decode source chars
+             |
+             v
+          116A[1..8]
+             |
+             +---- combat calculations use fields 3, 5, 6, 8
+             |
+             v
+           0344
+             |
+             v
+          BP-2E / BP-6C
+             |
+             v
+       damage-table lookup
+             |
+             v
+           [0286]
+             |
+             +---- 02E4 / 02E6 modifier stage
+             |
+             v
+           [0286]
+             |
+             v
+      target state -= [0286]
+
+The final target-state mutation is proven at physical 0x7EF27:
+
+    7EF27: MOV BX,[02D0h]
+    7EF2B: SHL BX,1
+    7EF2D: MOV SI,183Eh
+    7EF30: MOV DX,BX
+    7EF32: ADD BX,[SI+0Ah]
+    7EF35: MOV ES,[SI+02h]
+    7EF38: MOV AX,ES:[BX]
+    7EF3B: SUB AX,[0286h]
+    7EF3F: MOV BX,DX
+    7EF41: ADD BX,[SI+0Ah]
+    7EF44: MOV ES,[SI+02h]
+    7EF47: MOV ES:[BX],AX
+
+Therefore, if:
+    target_value = WORD indexed by 2*[02D0] in descriptor 183E
+
+then:
+    target_value_after = target_value_before - WORD [0286]
+
+There is no arithmetic/call between the SUB and the store.
+
+The next check is:
+
+    7EF4A: MOV BX,DX
+    7EF4C: ADD BX,[SI+0Ah]
+    7EF4F: MOV ES,[SI+02h]
+    7EF52: CMP WORD PTR ES:[BX],0
+    7EF56: JLE 7EF62
+
+So the updated target value is immediately tested for <= 0.
+
+DISPLAYED DAMAGE PROOF
+======================
+
+At physical 0x7EDCE:
+
+    7EDCE: MOV DI,728Eh
+    7EDD1: LEA SI,[BP-3Ch]
+    7EDD4: CALL 7C4A8
+
+    7EDD7: MOV SI,AX
+    7EDD9: LEA DI,[BP-78h]
+    7EDDC: CALL 7C4A8
+
+    7EDDF: MOV SI,AX
+    7EDE1: MOV DI,72A4h
+    7EDE4: CALL 7C4A8
+
+    7EDE7: PUSH WORD PTR [0286h]
+    7EDEB: MOV [BP-7Ah],AX
+    7EDEE: LCALL 1348:1206
+
+    7EDF3: MOV DI,AX
+    7EDF5: MOV SI,[BP-7Ah]
+    7EDF8: CALL 7C4A8
+
+    7EDFB: MOV SI,AX
+    7EDFD: MOV DI,7298h
+    7EE00: CALL 7C4A8
+
+    7EE03: MOV DI,AX
+    7EE05: LEA SI,[BP-3Ch]
+    7EE08: CALL 7C49E
+
+The relevant string resources include:
+    "The "
+    "hit..."
+    "damage."
+    "for"
+    "kill..."
+    "with a slay weapon!"
+    "misses"
+    "Points of Damage."
+    "points of damage!"
+
+Most importantly:
+    7EDE7: PUSH WORD PTR [0286h]
+
+So [0286] is explicitly passed into the combat-result text construction immediately before the target-state write path. This is direct evidence that [0286] is the damage quantity being reported to the player.
+
+The thunks are:
+    7C49E -> LJMP 1348:0BF4
+    7C4A8 -> LJMP 1348:0C2D
+
+The exact internal implementation of those formatting thunks is not needed to establish the [0286] role.
+
+DAMAGE VALUE PRODUCER: WEAPON/COMBAT TABLE LOOKUP
+==================================================
+
+At physical 0x305A4:
+
+    305A4: MOV WORD PTR [0286h],0000h
+
+    305AA: MOV AX,[BP-16h]
+    305AD: IMUL WORD PTR [BP-30h]
+
+    305B0: MOV SI,[BP+0Ch]
+    305B3: ADD AX,[SI]
+
+    305B5: SHL AX,1
+    305B7: MOV BX,AX
+
+    305B9: LEA SI,[BP-28h]
+    305BC: ADD BX,[SI+0Ah]
+    305BF: MOV ES,[SI+02h]
+    305C2: MOV AX,ES:[BX]
+    305C5: MOV [BP-38h],AX
+
+This gives:
+
+    index_word = [BP-16] * [BP-30] + WORD PTR [[BP+0C]]
+    byte_offset = 2 * index_word
+    D = WORD PTR [descriptor at BP-28 + byte_offset]
+    [BP-38] = D
+
+For the normal-damage path, [BP+0C] has been observed as 01F6, giving:
+
+    D = WORD in ES_0102 at:
+        descriptor0102.offset + 2*([BP-16]*[BP-30] + 01F6)
+
+This selected table value is NOT the final damage. It is the parameter used by the random accumulation below.
+
+RANDOM ACCUMULATION INTO [0286]
+================================
+
+The loop around 305DE is:
+
+    305DE: MOV AX,[BP-3Ah]
+    305E1: MOV [BP-36h],AX
+    305E4: MOV AX,0001h
+    305E7: JMP 30601
+
+    30601: MOV [BP-2Ah],AX
+    30604: CMP AX,[BP-36h]
+    30607: JLE 305EAh
+
+    305EA: LEA AX,[BP-38h]
+    305ED: PUSH AX
+    305EE: LCALL 0000:3E32
+    305F3: MOV [BP-3Ch],AX
+    305F6: MOV AX,[BP-3Ch]
+    305F9: ADD [0286h],AX
+
+The exact loop semantics are:
+
+    for i = 1 .. [BP-3A]:
+        R = RandomHelper(&[BP-38])
+        [0286] += R
+
+The initial selected table value D is passed by pointer to 3E32.
+
+3E32 RANDOM/ROLL HELPER
+=======================
+
+Resident routine at physical 0x69F2:
+
+    69F2: MOV CX,0002h
+    69F5: LCALL 1348:536Dh
+    69FA: PUSH 42C8h
+    69FD: PUSH 0000h
+    69FF: LCALL 1348:2CDE
+    6A04: MOV SI,AX
+    6A06: INT 35
+    6A07: DB 04h
+    6A08: MOV SI,[BP+06h]
+    6A0B: INT 3Ah
+    6A0C: DB 0Ch
+    6A0E: INT 3Dh
+    6A10: DB 9Ah, A6h, 00h, 4Bh, 12h
+    6A15: INT 34h
+    6A16: DB 06h, CEh, 3Eh
+    6A19: INT 3Bh
+    6A1A: DB 5Eh, ECh
+    6A1C: INT 3Dh
+    6A1E: MOV AX,[BP-14h]
+    6A21: LCALL 1348:53A4
+    6A26: LRET 0002h
+
+The INT bytes are the compiler's x87-emulation instruction stream. Decoded conceptually, the key operations are:
+
+    FLD DWORD PTR [SI]        ; generated random float
+    MOV SI,[BP+06h]
+    FIADD WORD PTR [SI]       ; + D
+    LCALL 124B:00A6           ; unresolved normalize/round operation
+    FADD DWORD PTR [3ECE]     ; + constant
+    FISTP WORD PTR [BP-14h]
+    MOV AX,[BP-14h]
+
+Thus:
+
+    R = FISTP( Normalize(RandomFloat + D) + constant[3ECE] )
+
+The exact semantics of 124B:00A6 and the constant's runtime numeric value are unresolved.
+
+RNG SEED/GENERATOR PATH
+=======================
+
+The 3E32 helper calls:
+
+    PUSH 42C8h
+    PUSH 0000h
+    LCALL 1348:2CDE
+
+Physical 0x18D1E is the implementation of 1348:2CDE:
+
+    18D1E: PUSH BP
+    18D1F: MOV BP,SP
+    18D21: MOV AX,[BP+08h]
+    18D24: OR AX,AX
+    18D26: JE 18D42
+    18D28: JNS 18D3Dh
+    18D2A: MOV DX,[BP+06h]
+    18D2D: ADD DL,AH
+    18D2F: ADC DH,00h
+    18D32: ADC AL,00h
+    18D34: XOR AH,AH
+    18D36: MOV [A283h],DX
+    18D3A: MOV [A285h],AX
+    18D3D: CALL 18D49h
+    18D40: JMP 18D45h
+    18D42: CALL 18D7Bh
+    18D45: POP BP
+    18D46: LRET 0004h
+
+Because the call supplies:
+    [BP+06] = 0
+    [BP+08] = 42C8h
+
+the zero branch is taken and 18D7B initializes/generates the floating random value.
+
+The update routine 18D49 is:
+
+    18D49: PUSH DI
+    18D4A: MOV AX,[A283h]
+    18D4D: MOV CX,[A538h]
+    18D51: MUL CX
+    18D53: XCHG AX,DI
+    18D54: MOV BX,DX
+    18D56: MOV AX,[A285h]
+    18D59: MUL CX
+    18D5B: ADD BX,AX
+    18D5D: MOV AX,[A538h]
+    18D60: MUL WORD PTR [A283h]
+    18D64: ADD BX,AX
+    18D66: ADD DI,[A53Ch]
+    18D6A: ADC BL,BYTE PTR [A53Ch]
+    18D6E: XOR BH,BH
+    18D70: MOV DX,DI
+    18D72: MOV [A283h],DX
+    18D76: MOV [A285h],BX
+    18D7A: POP DI
+
+18D7B is:
+
+    18D7B: FINIT
+    18D7D: FILD DWORD PTR [A283h]
+    18D82: FADD DWORD PTR SS:[A540h]
+    18D87: MOV BX,A360h
+    18D8A: FSTP DWORD PTR [BX]
+    18D8D: XCHG AX,BX
+    18D8F: FWAIT
+    18D90: RET
+
+The exact distribution depends on runtime values at A538/A53C/A540 and remains unresolved.
+
+02E4 / 02E6 MODIFIER STAGE
+===========================
+
+At physical 0x3068F:
+
+    3068F: MOV WORD PTR [02E4h],0000h
+    30695: MOV AX,[SI]
+    30697: SUB AX,0064h
+    3069A: LCALL 124B:001Eh
+
+So for an input X > 100, the code converts X to X-100 through the normalization helper.
+
+Then:
+
+    306AB: MOV WORD PTR [BP-48h],0014h
+    306B0: PUSH 02E4h
+    306B3: LEA AX,[BP-48h]
+    306B6: PUSH AX
+    306B7: LCALL 0000:3C42h
+    306BC: MOV [BP-4Ah],AX
+
+    306BF: MOV WORD PTR [BP-4Ch],0050h
+    306C4: LEA AX,[BP-4Ah]
+    306C7: PUSH AX
+    306C8: LEA AX,[BP-4Ch]
+    306CB: PUSH AX
+    306CC: LCALL 0000:3C72h
+    306D1: MOV [BP-4Eh],AX
+    306D4: MOV AX,[BP-4Eh]
+    306D7: MOV [02E4h],AX
+
+3C42 and 3C72 are unresolved.
+
+At physical 0x2F7BF:
+
+    2F7BF: MOV WORD PTR [BP-26h],0000h
+    2F7C4: MOV WORD PTR [BP-22h],0028h
+    2F7C9: LEA AX,[BP-22h]
+    2F7CC: PUSH AX
+    2F7CD: LCALL 0000:3E32h
+    2F7D2: MOV [BP-24h],AX
+    2F7D5: MOV AX,[BP-24h]
+    2F7D8: MOV [BP-28h],AX
+    2F7DB: ADD [02E4h],AX
+
+    2F7DF: MOV WORD PTR [02E6h],0000h
+    2F7E5: CMP WORD PTR [02E4h],0000h
+    2F7EA: JLE 2F802h
+    2F7EC: MOV AX,[02E4h]
+    2F7EF: SHL AX,1
+    2F7F1: LCALL 124B:001Eh
+    ...
+    2F7FB: [x87-emulation stream]
+    2F7FD: DB 1Eh,E6h,02h
+    2F800: INT 3Dh
+
+The decoded relation is:
+
+    if 02E4 <= 0:
+        02E6 = 0
+    else:
+        02E6 = 100 + 2 * 02E4
+
+The x87 block uses 100.0 (runtime constant at 42F4).
+
+C06 FINAL DAMAGE FORMULA
+========================
+
+At physical 0x306E2:
+
+    306E2: FILD WORD PTR [0286h]
+
+    306E7: MOV SI,116Ah
+    306EA: MOV BX,0006h
+    306ED: ADD BX,[SI+0Ah]
+    306F0: MOV ES,[SI+02h]
+    306F3: MOV AX,ES:[BX]
+    306F6: SHL AX,1
+    306F8: MOV BX,AX
+
+    306FA: MOV SI,0C06h
+    306FD: ADD BX,[SI+0Ah]
+    30700: MOV ES,[SI+02h]
+
+    30703: FIMULS WORD PTR ES:[BX]
+    3070E: LCALL 124B:00A6
+    30713: FADD DWORD PTR SS:[41DCh]    ; +1.0
+
+Then:
+
+    3071F: FILD WORD PTR [0286h]
+    30724: MOV AX,[02E6h]
+    30727: IMUL WORD PTR [0286h]
+    3072B: LCALL 124B:001Eh
+    30730: FWAIT
+    30732: LCALL 124B:00A6
+    30737: FADDP ST(1),ST(0)
+    3073A: FISTP WORD PTR [0286h]
+
+Therefore:
+
+    I = Normalize( [0286] * C06[116A[3]] ) + 1
+    FINAL = I + Normalize( I * 02E6 )
+    [0286] = FINAL
+
+where the exact C06 indexing is:
+
+    index = 2 * 116A[3]
+
+and the C06 value is a WORD.
+
+The normalization routines are still not semantically named beyond their observed role.
+
+COMBAT FUNCTION INITIAL STATE AND [BP-14]
+==========================================
+
+Combat routine starts around physical 0x7E34D:
+
+    7E34D: MOV CX,000Eh
+    7E350: LCALL 1348:536Dh
+    7E355: MOV WORD PTR [BP-14h],0000h
+
+Five independent positive-value tests increment [BP-14].
+
+Test 1:
+
+    7E35A: MOV SI,[BP+06h]
+    7E35D: MOV BX,[SI]
+    7E35F: SHL BX,1
+    7E361: MOV SI,2756h
+    7E364: ADD BX,[SI+0Ah]
+    7E367: MOV ES,[SI+02h]
+    7E36A: CMP WORD PTR ES:[BX],0000h
+    7E36E: JLE ...
+    7E370: INC WORD PTR [BP-14h]
+
+Test 2:
+
+    7E37F: MOV SI,[BP+06h]
+    7E382: MOV BX,[SI]
+    7E384: SHL BX,1
+    7E386: MOV SI,26CCh
+    7E389: ADD BX,[SI+0Ah]
+    7E38C: MOV ES,[SI+02h]
+    7E38F: CMP WORD PTR ES:[BX],0000h
+    7E393: JLE ...
+    7E395: INC WORD PTR [BP-14h]
+
+Test 3:
+
+    7E3A8: MOV SI,[BP+06h]
+    7E3AB: MOV BX,[SI]
+    7E3AD: SHL BX,1
+    7E3AF: MOV SI,26FAh
+    7E3B2: ADD BX,[SI+0Ah]
+    7E3B5: MOV ES,[SI+02h]
+    7E3B8: CMP WORD PTR ES:[BX],0000h
+    7E3BC: JLE ...
+    7E3BE: INC WORD PTR [BP-14h]
+
+Test 4:
+
+    7E3D1: MOV SI,[BP+06h]
+    7E3D4: MOV BX,[SI]
+    7E3D6: SHL BX,1
+    7E3D8: MOV SI,2784h
+    7E3DB: ADD BX,[SI+0Ah]
+    7E3DE: MOV ES,[SI+02h]
+    7E3E1: CMP WORD PTR ES:[BX],0000h
+    7E3E5: JLE ...
+    7E3E7: INC WORD PTR [BP-14h]
+
+Test 5:
+
+    7E3FA: MOV SI,[BP+06h]
+    7E3FD: MOV BX,[SI]
+    7E3FF: SHL BX,1
+    7E401: MOV SI,2728h
+    7E404: ADD BX,[SI+0Ah]
+    7E407: MOV ES,[SI+02h]
+    7E40A: CMP WORD PTR ES:[BX],0000h
+    7E40E: JLE ...
+    7E410: INC WORD PTR [BP-14h]
+
+Therefore [BP-14] is exactly the count of positive entries among these five indexed tables.
+
+[BP-2E] DERIVATION
+===================
+
+At physical 0x7E82B:
+
+    7E82B: MOV BX,[0258h]
+    7E82F: SHL BX,1
+    7E831: MOV SI,0C90h
+    7E834: ADD BX,[SI+0Ah]
+    7E837: MOV ES,[SI+02h]
+    7E83A: MOV AX,ES:[BX]
+
+    7E83D: SHL AX,1
+    7E83F: MOV BX,AX
+    7E841: MOV SI,1B7Ah
+    7E844: ADD BX,[SI+0Ah]
+    7E847: MOV ES,[SI+02h]
+    7E84A: MOV AX,ES:[BX]
+
+    7E84D: MOV CX,000Fh
+    7E850: IMUL CX
+    7E852: MOV BX,AX
+
+    7E854: MOV AX,0014h
+    7E857: IMUL WORD PTR [02C0h]
+    7E85B: SUB BX,AX
+
+    7E85D: ADD BX,[0344h]
+    7E861: ADD BX,[BP-14h]
+    7E865: MOV [BP-2Eh],BX
+
+Exact algebra:
+
+    [BP-2E] =
+        15 * WORD[ 1B7A[ WORD[ C90[ WORD[0258] ] ] ] ]
+        - 20 * WORD[02C0]
+        + WORD[0344]
+        + [BP-14]
+
+The exact semantic meaning of these source tables is unresolved.
+
+[BP-32] DERIVATION
+==================
+
+At physical 0x7E93F:
+
+    7E93F: MOV BX,[02D0h]
+    7E943: SHL BX,1
+    7E945: MOV SI,1810h
+    7E948: ADD BX,[SI+0Ah]
+    7E94B: MOV ES,[SI+02h]
+    7E94E: MOV AX,ES:[BX]
+    7E951: MOV CX,0014h
+    7E954: IMUL CX
+    7E956: MOV [BP-32h],AX
+
+Therefore:
+
+    [BP-32] = 20 * WORD[1810[WORD[02D0]]]
+
+On the nonzero-target branch this participates in:
+
+    7ED62: MOV AX,[BP-2Eh]
+    7ED65: SUB AX,[BP-32h]
+    7ED68: MOV [BP-6Ch],AX
+
+So:
+
+    X = [BP-2E] - [BP-32]
+    [BP-6C] = X
+
+[BP+06] IN THE COMBAT ROUTINE
+=============================
+
+The combat function repeatedly dereferences [BP+06]:
+
+    MOV SI,[BP+06h]
+    MOV BX,[SI]
+    SHL BX,1
+    ...
+
+It is also passed intact to another far routine:
+
+    7E59B: PUSH WORD PTR [BP+06h]
+    7E59E: LCALL 0B89:2D7Ah
+
+And the 0344 builder uses it:
+
+    91CB: MOV SI,[BP+06h]
+    91CE: ADD AX,[SI]
+
+Thus:
+
+    U = WORD PTR [[BP+06h]]
+
+is a combatant/unit index in the 0EB8 lookup.
+
+This strongly supports interpreting [BP+06] as a pointer to a combatant/unit-related structure, but the exact gameplay-facing name is not yet proven.
+
+0344 CONSTRUCTION
+=================
+
+A related combat construction begins with:
+
+    7E74B: MOV WORD PTR [0344h],0000h
+    7E751: LCALL 0853:2CD2
+
+The target 0853:2CD2 is unresolved and must not be flattened into a physical EXE offset.
+
+Another invocation:
+
+    7E81B: MOV WORD PTR [0286h],0000h
+    7E821: MOV WORD PTR [0344h],0000h
+    7E827: LCALL 0853:2CD2
+
+The more completely decoded 0344 builder is around physical 0x915E:
+
+    915E: MOV SI,116Ah
+
+    9161: MOV BX,000Ch
+    9164: ADD BX,[SI+0Ah]
+    9167: MOV ES,[SI+02h]
+    916A: MOV AX,ES:[BX]
+    916D: MOV CX,000Ah
+    9170: IMUL CX
+    9172: LCALL 124Bh:001Eh
+
+This accesses:
+    000C / 2 = 6
+therefore the integer component begins with:
+    10 * 116A[6]
+
+The x87 emulation immediately following combines this with the 116A[8] component; its exact internal sequence still needs full decoding.
+
+Later:
+
+    9194: MOV BX,CX
+    9196: ADD BX,[SI+0Ah]
+    9199: MOV ES,[SI+02h]
+    919C: MOV AX,ES:[BX]
+    919F: MOV CX,0005h
+    91A2: IMUL CX
+
+Then:
+
+    91A4: MOV BX,0006h
+    91A7: ADD BX,[SI+0Ah]
+    91AA: MOV ES,[SI+02h]
+    91AD: MOV CX,ES:[BX]
+    91B0: SHL CX,1
+
+    91B2: MOV BX,CX
+    91B4: MOV SI,0D1Ah
+    91B7: ADD BX,[SI+0Ah]
+    91BA: MOV ES,[SI+02h]
+    91BD: MOV CX,ES:[BX]
+    91C0: ADD CX,0003h
+
+    91C3: MOV BX,AX
+    91C5: MOV AX,CX
+    91C7: IMUL WORD PTR [0ECAh]
+
+    91CB: MOV SI,[BP+06h]
+    91CE: ADD AX,[SI]
+
+    91D0: SHL AX,1
+
+    91D2: MOV DX,BX
+    91D4: MOV BX,AX
+    91D6: MOV SI,0EB8h
+    91D9: ADD BX,[SI+0Ah]
+    91DC: MOV ES,[SI+02h]
+    91DF: ADD DX,ES:[BX]
+
+    91E2: ADD DX,[BP-54h]
+    91E5: MOV [0344h],DX
+
+The exact integer lookup is:
+
+    C = WORD[116A[3]]
+    D = WORD[1D1A[2*C]]
+    E = D + 3
+    U = WORD PTR [[BP+06h]]
+    V = WORD[0EB8[E * WORD[0ECA] + U]]
+
+and:
+
+    0344 = prior floating/integer component + V + [BP-54]
+
+The exact preceding x87 component is not yet fully resolved.
+
+[BP-54] is also unresolved. A separate call to 0000:3D6E exists elsewhere in the executable, but frame/path identity has not been proven, so it must not currently be assigned to [BP-54].
+
+116A CONSTRUCTOR
+================
+
+At physical 0x3599:
+
+    03599: PUSH 0000h
+    0359B: PUSH 0008h
+    0359D: PUSH 0002h
+    0359F: PUSH 0101h
+    035A2: PUSH 116Ah
+    035A5: LCALL 1348:4034
+
+This constructs a nine-WORD resource/table (indices 0..8).
+
+116A POPULATION HANDLER: CASE TABLE ENTRY 51
+============================================
+
+A crucial structural discovery is that 0x5B62 is NOT reached by an ordinary static CALL.
+
+The physical table at 0xADD00 is a monotonically increasing table of code offsets. Entry 51 is:
+
+    ADD00 + 2*51 = ADD66
+    WORD[ADD66] = 5B62
+
+The table begins:
+
+    ADD00: DW 56E0
+    ADD02: DW 5705
+    ADD04: DW 570E
+    ADD06: DW 5728
+    ADD08: DW 5739
+    ...
+    ADD60: DW 5B00
+    ADD62: DW 5B0E
+    ADD64: DW 5B13
+    ADD66: DW 5B62
+    ADD68: DW 5B75
+    ADD6A: DW 5B7E
+    ADD6C: DW 5B83
+    ADD6E: DW 5B8C
+    ADD70: DW 5B91
+    ADD72: DW 5B9F
+    ADD74: DW 5BB0
+    ...
+    ADDDA: DW 620B
+    ...
+    ADDEE: DW 6401
+
+There is no static CALL targeting 5B62. There is also no discovered static instruction that directly embeds the physical 0xADD00 address as an immediate table pointer.
+
+Therefore the exact:
+    selector -> dispatcher -> ADD00 -> 5B62
+link remains unresolved.
+
+This must be investigated through runtime/descriptor-style references rather than by inventing a simple JMP [ADD00+BX].
+
+The executable elsewhere contains genuine computed jump tables, for comparison:
+
+    1CBDB: CMP BX,0006h
+    1CBDF: SHL BX,1
+    1CBE1: JMP CS:[0185h+BX]
+
+and:
+
+    1F284: MOV BL,CH
+    1F286: AND BX,001Fh
+    1F289: SHL BX,1
+    1F28B: JMP CS:[07A2h+BX]
+
+and:
+
+    20612: MOV DX,BX
+    20614: MOV BL,[SI+0Bh]
+    20617: SHL BX,1
+    20619: JMP CS:[0882h+BX]
+
+A runtime function-pointer dispatch example:
+
+    167AF: MOV CX,[BX]
+    167B1: MOV SI,[BX+02h]
+    ...
+    167C7: MOV AL,[SI+03h]
+    167CA: NEG AL
+    167CD: CBW
+    167CF: SHL AX,1
+    167D2: PUSH DI
+    167D3: MOV DI,AX
+    167D5: MOV DI,CS:[06E2h+DI]
+    167D7: XCHG AX,DI
+    167D8: CALL AX
+    167DA: POP DI
+
+These examples prove the executable uses indirect dispatching, but do not prove they are the 0xADD00 dispatcher.
+
+FULL CASE-51 DECODER
+====================
+
+At 0x5B62:
+
+    5B62: MOV CX,0090h
+    5B65: LCALL 1348:536Dh
+
+    5B6A: PUSH 0000h
+    5B6C: PUSH 0008h
+    5B6E: PUSH 0002h
+    5B70: PUSH 0101h
+    5B73: PUSH 116Ah
+    5B76: LCALL 1348:3BACh
+
+    5B7B: MOV DI,3CB8h
+    5B7E: MOV SI,024Eh
+    5B81: CALL 02BF2h
+
+    5B84: MOV DI,3DC4h
+    5B87: LEA SI,[BP-16h]
+    5B8A: CALL 02BF2h
+
+    5B8D: MOV AX,0001h
+    5B90: JMP 5BBD
+
+Loop:
+
+    5B94: PUSH WORD PTR [BP+06h]
+    5B97: PUSH AX
+    5B98: PUSH 0001h
+    5B9A: LCALL 1348:112Eh
+
+    5B9F: PUSH AX
+    5BA0: LCALL 1348:108Eh
+
+    5BA5: SUB AX,000Eh
+
+    5BA8: MOV BX,[BP-18h]
+    5BAB: SHL BX,1
+
+    5BAD: MOV SI,116Ah
+    5BB0: ADD BX,[SI+0Ah]
+    5BB3: MOV ES,[SI+02h]
+
+    5BB6: MOV ES:[BX],AX
+
+    5BB9: MOV AX,[BP-18h]
+    5BBC: INC AX
+    5BBD: MOV [BP-18h],AX
+
+    5BC0: CMP AX,0008h
+    5BC3: JLE 5B94
+
+This proves:
+
+    source = object pointed to by [BP+06]
+    for i = 1..8:
+        char = 108E(112E(source, i, 1))
+        116A[i] = char - 14
+
+The exact storage mapping is:
+
+    116A + 02 = source position 1
+    116A + 04 = source position 2
+    116A + 06 = source position 3
+    116A + 08 = source position 4
+    116A + 0A = source position 5
+    116A + 0C = source position 6
+    116A + 0E = source position 7
+    116A + 10 = source position 8
+
+112E IS A GENERIC STRING/OBJECT SLICE ROUTINE
+==============================================
+
+Physical 0x1716E:
+
+    1716E: PUSH BP
+    1716F: MOV BP,SP
+    17171: MOV BX,[BP+0Ah]
+    17174: MOV CX,[BP+06h]
+    17177: OR CX,CX
+    17179: JL 1716B
+    1717B: MOV DX,[BP+08h]
+    1717E: DEC DX
+    1717F: XCHG DX,CX
+    17181: JL 1716B
+    17183: JNE 1718A
+    17185: CALL 171A6
+    17188: JMP 171A2
+    1718A: MOV AX,[BX]
+    1718C: SUB AX,CX
+    1718E: JG 17198
+    17190: CALL 179DE
+    17193: MOV AX,A030h
+    17196: JMP 171A2
+    17198: CMP AX,DX
+    1719A: JGE 1719E
+    1719C: MOV DX,AX
+    1719E: CALL 179F6
+    171A1: XCHG AX,BX
+    171A2: POP BP
+    171A3: LRET 0006h
+
+Related routines:
+    17129 calls 179DE and 170FD
+    1714A / 17157 call 171A6
+    171A6 performs bounds checking and calls 179DE/179F6
+    179F6 performs managed-memory copy/slice behavior
+    179DE is allocator/refcount machinery
+
+One-element extraction at physical 0x170CE:
+
+    170CE: PUSH BP
+    170CF: MOV BP,SP
+    170D1: PUSH SI
+    170D2: MOV BX,[BP+06h]
+    170D5: CMP WORD PTR [BX],0000h
+    170D8: JE 170EA
+    170DA: MOV SI,[BX+02h]
+    170DD: MOV SI,[SI]
+    170DF: CALL 179DE
+    170E2: XCHG AX,SI
+    170E3: XOR AH,AH
+    170E5: POP SI
+    170E6: POP BP
+    170E7: LRET 0002h
+
+Direct proof that 112E/108E are character/string machinery comes from physical 0x5263:
+
+    5263: MOV WORD PTR [BP-1Ah],0000h
+    5268: MOV WORD PTR [BP-1Ch],FFFFh
+    5268: PUSH WORD PTR [BP+08h]
+    526B: INC AX
+    526C: PUSH AX
+    526D: PUSH 0001h
+    526F: LCALL 1348:112Eh
+    5274: PUSH AX
+    5275: LCALL 1348:108Eh
+    527A: MOV [BP-1Eh],AX
+    527D: MOV [BP-18h],AX
+
+    5280: CMP WORD PTR [BP-18h],0041h
+    5284: JL 5295
+    5286: CMP WORD PTR [BP-18h],005Ah
+    528A: JG 5295
+    528C: SUB AX,0041h
+    528F: MOV [BP-1Ch],AX
+    5292: JMP 53A1
+
+    5295: CMP WORD PTR [BP-18h],0061h
+    5299: JL 52AD
+    529B: CMP WORD PTR [BP-18h],007Ah
+    529F: JG 52AD
+    52A1: MOV AX,[BP-1Eh]
+    52A4: SUB AX,0061h
+    52A7: MOV [BP-1Ch],AX
+    52AA: JMP 53A1
+
+    52AD: CMP WORD PTR [BP-18h],0031h
+    52B1: JL 52C5
+    52B3: CMP WORD PTR [BP-18h],0039h
+    52B7: JG 52C5
+
+This takes extracted characters and tests A-Z, a-z, 0-9. Thus 112E/108E are definitively generic string/character operations.
+
+116A SPECIAL CONDITION
+======================
+
+After decoding:
+
+    5BC5: MOV SI,116Ah
+    5BC8: MOV BX,000Eh
+    5BCB: ADD BX,[SI+0Ah]
+    5BCE: MOV ES,[SI+02h]
+    5BD1: CMP WORD PTR ES:[BX],001Eh
+    5BD5: JE 5BDA
+    5BD7: JMP 5C04
+
+000E/2 = 7, so:
+
+    if 116A[7] != 30 -> skip
+
+Then:
+
+    5BDA: MOV BX,000Ah
+    5BDD: ADD BX,[SI+0Ah]
+    5BE0: MOV ES,[SI+02h]
+    5BE3: CMP WORD PTR ES:[BX],0022h
+    5BE7: JE 5BEC
+    5BE9: JMP 5C04
+
+000A/2 = 5:
+
+    if 116A[7] == 30 AND 116A[5] == 34:
+        special operation
+
+The special operation:
+
+    5BEC: PUSH 0000h
+    5BEE: PUSH 0008h
+    5BF0: PUSH 0002h
+    5BF2: PUSH 0101h
+    5BF5: PUSH SI
+    5BF6: LCALL 1348:3BACh
+
+    5BFB: MOV DI,0162h
+    5BFE: MOV SI,[BP+06h]
+    5C01: CALL 02BF2h
+
+This shows the decoded record itself can trigger a special resource/string transformation.
+
+FIELD-USE EVIDENCE
+==================
+
+Position #3:
+
+    8420A: MOV SI,116Ah
+    8420D: MOV BX,0006h
+    84210: ADD BX,[SI+0Ah]
+    84213: MOV ES,[SI+02h]
+    84216: CMP WORD PTR ES:[BX],001Bh
+    8421A: JL 84231
+    8421C: MOV BX,0006h
+    8421F: ADD BX,[SI+0Ah]
+    84222: MOV ES,[SI+02h]
+    84225: CMP WORD PTR ES:[BX],001Dh
+    84229: JG 84231
+    8422B: MOV WORD PTR [02CEh],0001h
+
+0006/2 = 3.
+
+Therefore:
+    27 <= 116A[3] <= 29
+
+Since 116A[3] = source char #3 - 14, this corresponds to encoded character values 41h..43h if the source encoding is ASCII-like. The executable itself proves the numeric range; the ASCII interpretation is a representation-level observation.
+
+Position #1 categorical test:
+
+    5CD6: MOV SI,116Ah
+    5CD9: MOV BX,0002h
+    5CDC: ADD BX,[SI+0Ah]
+    5CDF: MOV ES,[SI+02h]
+    5CE2: MOV AX,ES:[BX]
+    5CE5: MOV [BP-26h],AX
+
+    5CE8: CMP WORD PTR [BP-26h],0001h
+    5CEC: JE 5D04
+    5CEE: CMP WORD PTR [BP-26h],0006h
+    5CF2: JE 5D04
+    5CF4: CMP WORD PTR [BP-26h],0008h
+    5CF8: JE 5D04
+    5CFA: CMP WORD PTR [BP-26h],00D7h
+    5CFF: JE 5D04
+    5D01: JMP 5D70
+
+0002/2 = 1:
+
+    116A[1] is one of {1, 6, 8, D7} for this branch.
+
+Position #5 numerical use:
+
+    5D04: MOV SI,116Ah
+    5D07: MOV BX,000Ah
+    5D0A: ADD BX,[SI+0Ah]
+    5D0D: MOV ES,[SI+02h]
+    5D10: MOV AX,ES:[BX]
+    5D13: AND AX,AX
+    5D15: JE 5D6D
+    5D17: MOV BX,000Ah
+    5D1A: ADD BX,[SI+0Ah]
+    5D1D: MOV ES,[SI+02h]
+    5D20: MOV AX,ES:[BX]
+    5D23: MOV CX,0005h
+    5D26: IMUL CX
+    5D28: MOV [BP-28h],AX
+
+000A/2 = 5:
+
+    [BP-28] = 5 * 116A[5]
+
+Position #4 is also consumed numerically:
+
+    5DD8: MOV SI,116Ah
+    5DDB: MOV BX,0008h
+    5DDE: ADD BX,[SI+0Ah]
+    5DE1: MOV ES,[SI+02h]
+    5DE4: MOV AX,ES:[BX]
+    5DE7: AND AX,AX
+    5DE9: JE 5E1E
+
+0008/2 = 4.
+
+Later:
+
+    5DF4: MOV SI,116Ah
+    5DF7: MOV BX,0008h
+    5DFA: ADD BX,[SI+0Ah]
+    5DFD: MOV ES,[SI+02h]
+    5E00: MOV CX,ES:[BX]
+    5E03: SHL CX,1
+    5E05: SHL CX,1
+    5E07: MOV BX,CX
+    5E09: MOV SI,11C6h
+    5E0C: ADD BX,[SI+0Ah]
+    ...
+
+Thus 116A[4] is used as a table index multiplied by four.
+
+Re-indexing is important:
+    offset +02 = field 1
+    offset +04 = field 2
+    offset +06 = field 3
+    offset +08 = field 4
+    offset +0A = field 5
+    offset +0C = field 6
+    offset +0E = field 7
+    offset +10 = field 8
+
+3138 RESOURCE RECORD
+====================
+
+At physical 0xA62D:
+
+    A62D: MOV SI,[BP+0Ah]
+    A630: MOV AX,[SI]
+    A632: SHL AX,1
+    A634: SHL AX,1
+    A636: ADD AX,0320h
+    A639: MOV BX,AX
+    A63B: MOV SI,3138h
+    A63E: ADD BX,[SI+0Ah]
+    A641: MOV ES,[SI+02h]
+    A644: PUSH WORD PTR ES:[BX+02h]
+    A648: PUSH WORD PTR ES:[BX]
+    A64B: PUSH 0000h
+    A64D: PUSH 0000h
+    A64F: LCALL 1348:0115
+    A654: JG A659
+    A656: JMP A739
+
+    A659: MOV SI,[BP+06h]
+    A65C: PUSH WORD PTR [SI]
+    A65E: MOV BX,AX
+    A660: MOV SI,30DCh
+    A663: ADD BX,[SI+0Ah]
+    A666: MOV ES,[SI+02h]
+    A669: [unresolved runtime/emulation sequence]
+    A674: LCALL 124B:00A6
+    ...
+    A683: PUSH AX
+    A686: PUSH 0101h
+    A689: PUSH WORD PTR [BP+08h]
+    A68C: LCALL 1348:3BACh
+
+    A691: MOV SI,[BP+0Ah]
+    A694: MOV AX,[SI]
+    A696: SHL AX,1
+    A698: SHL AX,1
+    A69A: ADD AX,0320h
+    A69D: MOV BX,AX
+    A69F: MOV SI,3138h
+    A6A2: ADD BX,[SI+0Ah]
+    A6A5: MOV ES,[SI+02h]
+    A6A8: MOV [BP-1Ch],AX
+    A6AB: MOV AX,ES:[BX]
+    A6AE: MOV DX,ES:[BX+02h]
+    A6B2: MOV [BP-16h],AX
+    A6B5: MOV [BP-14h],DX
+
+The exact record address is:
+
+    record_offset =
+        descriptor3138.offset + 0320h + 4 * WORD PTR [[BP+0A]]
+
+    record_segment = descriptor3138.segment
+
+and the record is exactly four bytes:
+
+    word 0 = ES:[record_offset]
+    word 1 = ES:[record_offset+2]
+
+This is proven again by a later write pair:
+
+    A72F: MOV ES:[BX],AX
+    A732: MOV ES:[BX+02h],DX
+
+The resource is constructed as:
+
+    8B35: PUSH 0001h
+    8B37: PUSH 0190h
+    8B3A: PUSH 0004h
+    8B3C: PUSH 0101h
+    8B3F: PUSH 3138h
+    8B42: LCALL 1348:4034
+
+Therefore 3138 is a 4-byte resource/table in resource 0101. It should NOT be called a weapon table merely because it appears in the broader combat investigation.
+
+IMPORTANT CALL-FRAME CORRECTION
+================================
+
+At 0x7E62A:
+
+    7E62A: MOV WORD PTR [BP-16h],0018h
+    7E62F: LEA AX,[BP-16h]
+    7E633: PUSH AX
+    7E638: LCALL 04DD:2DDCh
+
+The target at 04DD:2DDC operates using the enclosing combat function's BP. It does not establish an independent BP frame in the relevant interpretation.
+
+Therefore [BP+0A] in that target is the third argument of the enclosing function, not simply the temporary [BP-16] pointer that was just pushed.
+
+This matters when tracing the source/unit object.
+
+BLINKER VECTOR INFORMATION
+==========================
+
+The Blinker vector table begins at physical 0x2BC34 and contains 29 far pointers:
+
+    0 -> 1E11:0008
+    1 -> 1E11:007A
+    2 -> 1E11:00D4
+    3 -> 1E11:0140
+    4 -> 1E11:01A0
+    5 -> 1E11:01D6
+    6 -> 1E11:0230
+    7 -> 1E11:02B4
+    8 -> 1E11:02C6
+    9 -> 1E11:032C
+   10 -> 1E11:037A
+   11 -> 1E11:03E6
+   12 -> 1E11:041C
+   13 -> 1E11:045E
+   14 -> 1E11:048E
+   15 -> 1E11:04E8
+   16 -> 1E11:0548
+   17 -> 1E11:0584
+   18 -> 1E11:0596
+   19 -> 1E11:05BA
+   20 -> 1E11:062C
+   21 -> 1E11:0662
+   22 -> 1E11:0674
+   23 -> 1E11:06B6
+   24 -> 1E11:06CE
+   25 -> 1E11:0704
+   26 -> 1E11:07A6
+   27 -> 1E11:0860
+   28 -> 1E11:08F0
+
+Vector slot 5 is runtime 1E11:0026 and is called once:
+
+    306DA: PUSH WORD PTR [BP+0Eh]
+    306DD: LCALL 1E11:0026
+
+Vector 1E11:0056 is called at physical 0x792D6 and 0x7ED9E.
+
+The targets of 1E11:0026 and 1E11:0056 are not statically proven. Naive conversion of 1E11:0026 to a resident physical offset is invalid.
+
+UNRESOLVED ITEMS — DO NOT ASSUME
+================================
+
+1. Exact selector feeding the 0xADD00 table.
+2. Exact instruction(s) implementing selector -> ADD00 -> handler.
+3. Caller and complete calling convention for case 51 / 0x5B62.
+4. Exact source record/object supplied as [BP+06] to 5B62.
+5. Semantic names of 116A fields 1..8.
+6. Exact contents/meaning of resource 0EB8 and scalar 0ECA.
+7. Full x87-emulation block 9177..9193.
+8. Producer and gameplay meaning of [BP-54].
+9. Exact target 0853:2CD2 implementation.
+10. Exact implementations of 0000:3C42 and 0000:3C72.
+11. Exact numeric normalization behavior of 124B:001E and 124B:00A6.
+12. Exact RNG distribution constants at A538/A53C/A540.
+13. Full linkage from 0344 into the [BP-16]/[BP-30] damage-table indexing for every combat branch.
+14. Exact semantics of [BP-90], although its control flow is known.
+15. Exact runtime resolution of Blinker overlay far addresses.
+
+NEXT TRACE PRIORITIES
+=====================
+
+The highest-value continuation order is:
+
+A. Find the actual dispatcher consuming the 0xADD00 table.
+   - Search for descriptor/resource construction around the table.
+   - Search for indirect jumps/calls whose runtime table could cover 56E0..6401.
+   - Identify selector values and prove the entry-51 path.
+
+B. Recover the exact source object passed as [BP+06] to case 51.
+   - Once the caller is known, enumerate its arguments and source record.
+   - Recover the eight encoded source characters.
+
+C. Resolve 0ECA and 0EB8.
+   - This is likely to turn field 3 into a gameplay-facing categorical value.
+   - The exact index expression is already proven.
+
+D. Finish the 0344 builder.
+   - Decode the x87 block 9177..9193.
+   - Resolve [BP-54].
+   - Resolve 0853:2CD2.
+
+E. Finish the weapon damage path.
+   - Track [BP-16] and [BP-30] into the 0102 table.
+   - Identify all branches that can produce [BP-16]/[BP-30].
+   - Map the selected 0102 cell to the actual random roll count and die/parameter semantics.
+   - Track 02E4/02E6 completely.
+   - Confirm all paths reaching [0286].
+
+F. Finally produce a single linear pseudocode/assembly-equivalent reconstruction, with every semantic name tied to a proven byte-level source.
+
+CURRENT CONFIDENCE MODEL
+========================
+
+PROVEN:
+    [0286] is the displayed and ultimately subtracted damage amount.
+    Final state mutation is target_word -= [0286].
+    [0286] is built from repeated random/helper rolls.
+    Each roll reads a parameter selected from resource 0102.
+    02E4/02E6 feed an additional multiplier-like stage.
+    116A contains eight decoded fields from a source object.
+    5B62 is entry 51 of the 0xADD00 code-offset table.
+    112E/108E perform generic managed string/character extraction.
+    [BP+06] is dereferenced as a unit/combatant-related pointer in combat.
+    0344 is constructed from 116A-derived values, a unit index, 0EB8, and [BP-54].
+
+STRONGLY SUPPORTED:
+    0xADD00 is a case/handler table.
+    5B62 is one handler in a larger dispatch family.
+    116A is a decoded compact record.
+    [BP+06] points to a combatant/unit structure or related object.
+    Fields 3/5/6/8 have combat-relevant numerical roles.
+
+NOT PROVEN:
+    Any specific gameplay stat names for the 116A fields.
+    Any assumption that resource 3138 is a weapon table.
+    Any direct physical mapping of Blinker far addresses.
+    Any particular meaning for unresolved helper routines.
+
+The goal of the continuation is to replace every remaining "strongly supported" statement with an exact call/data-flow proof wherever possible, and only then assign gameplay-facing terminology.

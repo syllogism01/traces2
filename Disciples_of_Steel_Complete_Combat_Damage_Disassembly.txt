@@ -1,0 +1,2488 @@
+DISCIPLES OF STEEL COMBAT DAMAGE ROUTINE — COMPLETE DISASSEMBLY /
+EVIDENCE DOCUMENT
+================================================================
+
+Purpose
+
+This document consolidates the executable reverse-engineering work
+completed so far, in logical execution order. It is intended as a
+handoff document for another LLM or reverse engineer whose eventual goal
+is to fully disassemble the entire combat damage routine.
+
+The document deliberately separates:
+
+    [PROVEN]       directly established by executable bytes / observed code
+    [STRONG]       strongly supported structural interpretation
+    [INFERENCE]    plausible gameplay-facing interpretation not yet forced
+    [UNKNOWN]      not yet established
+
+The central unresolved chain is still the exact implementation of the
+overlay/vector routine 1E11:0026 and the FP helper 124B:00A6. Nothing
+below should silently convert those unknowns into guessed formulas.
+
+================================================================ 1.
+EXECUTABLE ARCHITECTURE AND ADDRESSING
+================================================================
+
+The game is a 16-bit segmented DOS executable. It uses a custom overlay
+/ relocation system and software x87 emulation.
+
+Hard warning:
+
+A far runtime address such as:
+
+    04DD:2DDC
+    04DD:2F57
+    1E11:0056
+    1E11:0026
+    124B:00A6
+    124B:001E
+
+must NOT be converted to a flat file offset by simply taking the offset.
+
+An overlay directory exists around physical 0x2C3C0. Examples of
+observed mapping records include:
+
+    0011:0000 -> 0x4A92
+    0011:4FC2 -> 0x4776
+    0011:9CC0 -> 0x5F92
+    0111:0436 -> 0x50D8
+    0111:5B4E -> 0x4CDA
+    0111:AE6E -> 0x4BF0
+    0211:00B6 -> 0x472E
+    ...
+    0801:CDA0 -> 0x114
+    0801:CEB4 -> 0x90
+
+This is consistent with custom Blinker-style overlay / relocation
+metadata.
+
+COMBAT1
+
+An embedded MZ overlay payload named COMBAT1 was found inside the
+executable.
+
+Approximate physical start: 0x2C5D0
+
+Payload extraction begins around: 0x2C610
+
+Extracted COMBAT1 payload length: approximately 0x8D09C bytes
+
+A mapping record:
+
+    04DD:468D -> physical 0x50DA
+
+gave a displacement of approximately:
+
+    0x0A4D
+
+which allows:
+
+    04DD:2F57 -> COMBAT1 physical 0x39A4
+    04DD:2453 -> COMBAT1 physical 0x34A0
+
+Resident segment 1348 examples:
+
+    1348:0C6A -> physical 0x16CAA
+    1348:0C2D -> physical 0x16C6D
+    1348:0BF4 -> physical 0x16C34
+    1348:1244 -> physical 0x17284
+
+================================================================ 2.
+SOFTWARE x87 EMULATION
+================================================================
+
+The executable does not contain ordinary native x87 instructions
+throughout the relevant code. Floating operations are emulated using DOS
+interrupts.
+
+Observed logical mapping:
+
+    INT 34 -> D8
+    INT 35 -> D9
+    INT 36 -> DA
+    INT 37 -> DB
+    INT 38 -> DC
+    INT 39 -> DD
+    INT 3A -> DE
+    INT 3B -> DF
+    INT 3C -> segment override
+    INT 3D -> FWAIT
+
+This matters when decoding raw bytes: apparent instruction boundaries
+near floating-point code can be misleading unless the emulator sequences
+are reconstructed.
+
+================================================================ 3.
+DESCRIPTOR / RESOURCE STRUCTURES
+================================================================
+
+The game uses descriptor structures for arrays and resource-backed data.
+
+General observed descriptor layout:
+
+    +00
+    +02    backing segment
+    +04    backing offset
+    +06
+    +08
+    +0A
+    +0C    element size
+    +0E    count/dimension-related field
+
+The common constructor is:
+
+    push ...
+    ...
+    push resource_id
+    call 1348:4034
+
+1348:4034 is an array/descriptor constructor and allocator.
+
+Relevant constructor logic around physical 0x1A074:
+
+    MOV BX,[BP+06]
+    CMP WORD PTR [BX+02],0000
+    JE ...
+
+    MOV CX,[BP+08]
+    MOV [BX+08],CX
+
+    MOV AX,[BP+0A]
+    MOV [BX+0C],AX
+
+The allocator later includes:
+
+    POP BX
+    XCHG AX,DX
+    MUL WORD PTR [BX+0C]
+    MOV [BX+0A],AX
+    ...
+    CALL 16108
+    ...
+    MOV [BX+06],AX
+    ...
+    MOV [BX+02],SS
+    MOV [BX],SI
+    ADD [BX+0A],SI
+
+Therefore these are runtime descriptors, not simply compile-time
+pointers.
+
+IMPORTANT: 1348:4034 is proven to allocate/describe resources. It is NOT
+itself proof of the disk/archive read operation. The actual
+archive-reading logic is elsewhere.
+
+================================================================ 4. ITEM
+/ ACTION STRUCTURE 116A
+================================================================
+
+Constructor:
+
+    PUSH 0000
+    PUSH 0008
+    PUSH 0002
+    PUSH 0101
+    PUSH 116A
+    CALL 1348:4034
+
+Therefore 116A is an 8-WORD structure.
+
+The important item/action field is +06.
+
+Assembly:
+
+    MOV SI,116A
+    MOV BX,0006
+    ADD BX,[SI+0A]
+    MOV ES,[SI+02]
+    MOV AX,ES:[BX]
+
+This reads the current item/action identifier.
+
+The resulting item ID is used to index item property arrays.
+
+Thus:
+
+    item_id = 116A[current + 06]
+
+where “current” denotes the descriptor’s backing/indexing mechanism.
+
+================================================================ 5.
+WEAPON PROPERTY ARRAYS
+================================================================
+
+The following parallel arrays have been identified:
+
+    11F4
+    0C06
+    0C34
+    08F8
+    0D1A
+    1198
+    0A3A
+    ...
+
+Current semantic confidence:
+
+    11F4 = weapon weight / load
+    0C06 = Damage Factor
+    0C34 = accuracy/chance-related property [strong, not final]
+    08F8 = weapon/item category or mode [not fully resolved]
+    0D1A = weapon attack-profile/category input
+    0A3A = separate unresolved weapon combat coefficient candidate
+
+Do not conflate 0A3A with 0C06.
+
+0D1A attack-category table:
+
+At approximately resource 8001:0D48:
+
+    0 = unused
+    1 = Slashing
+    2 = Crushing
+    3 = Cleaving
+    4 = Piercing
+    5 = Ranged
+
+This is useful context for the combat-profile selection, but the
+executable’s 01F6 variable must not yet be equated directly with these
+five categories.
+
+================================================================ 6. 0C06
+— DAMAGE FACTOR
+================================================================
+
+[PROVEN]
+
+Constructor:
+
+    PUSH 0000
+    PUSH 0032
+    PUSH 0002
+    PUSH 0101
+    PUSH 0C06
+    CALL 1348:4034
+
+0032 hexadecimal = 50 decimal.
+
+Therefore:
+
+    0C06 = 50 WORD slots
+
+The initialization loop populates item indices 1 through 48.
+
+Conceptually:
+
+    offset = item_index * 2
+    0C06[offset] = parsed item value
+
+This is a persistent item-property array.
+
+DIRECT UI PROOF
+
+At approximately physical executable offset 0x34362:
+
+    MOV SI,116A
+    MOV BX,0006
+    ADD BX,[SI+0A]
+    MOV ES,[SI+02]
+    MOV AX,ES:[BX]          ; item ID
+
+    SHL AX,1
+    MOV BX,AX
+    MOV SI,0C06
+    ADD BX,[SI+0A]
+    MOV ES,[SI+02]
+
+    MOV AX,ES:[BX]          ; 0C06[item]
+    MOV [BP-4E],AX
+
+    LEA AX,[BP-4E]
+    PUSH AX
+    LCALL 0000:4B01
+
+The surrounding UI label is:
+
+    Dam. Factor:
+
+The value displayed is the value read from 0C06[item], and the same
+routine writes an edited value back.
+
+Therefore, unequivocally:
+
+    0C06[item] = persistent item Damage Factor
+
+This is executable proof, not inference.
+
+KNOWN C06 VALUES
+
+Values recovered during the investigation include:
+
+    Woodsmen's Axe     90
+    Mace               60
+    Spiked Mace        80
+    Morning Star       90
+    Quarter Staff      40
+    Short Sword        50
+    Longsword          85
+    Shortbow           35
+    Light Crossbow     60
+
+The values look percentage-like, but their exact mathematical
+normalization is not yet proven.
+
+USER-SUPPLIED MANUAL COMPARISONS
+
+    Scimitar:
+        C06 Damage Factor = 45
+        manual dam. = 2
+
+    Hand Axe:
+        C06 = 60
+        manual dam. = 3
+
+    Knife:
+        C06 = 30
+        manual dam. = 2
+
+    Battleaxe:
+        C06 = 120
+        manual dam. = 5
+
+    Glaive:
+        C06 = 95
+
+    Light Crossbow:
+        C06 = 60
+
+The relationship between the manual’s “dam.” field and C06 is
+unresolved.
+
+The user also corrected an earlier resource interpretation: a field
+previously called “damage” was actually WEIGHT according to the manual.
+
+================================================================ 7. C06
+IS NOT THE BASEHIT COEFFICIENT
+================================================================
+
+A separate empirical BaseHit structure was recovered:
+
+    BaseHit =
+        weapon_base
+        + floor(weapon_skill * weapon_coefficient / 100)
+
+Examples:
+
+    Short Sword       base 32, coefficient 80
+    Longsword         base 34, coefficient 85
+    Shortbow          base 36, coefficient 90
+    Light Crossbow    base 33, coefficient 82
+    Morning Star      base 33, coefficient 82
+
+Compare C06:
+
+    Short Sword       50
+    Longsword         85
+    Shortbow          35
+    Light Crossbow    60
+    Morning Star      90
+
+They do not generally coincide.
+
+Therefore:
+
+    C06 != generic BaseHit skill-scaling coefficient
+
+This distinction is important.
+
+================================================================ 8. THE
+CRITICAL C06 COMBAT OPERATION
+================================================================
+
+This is the central local damage-factor proof.
+
+Approximately physical executable offset 0x306E7:
+
+    306E7  MOV SI,116A
+    306EA  MOV BX,0006
+    306ED  ADD BX,[SI+0A]
+    306F0  MOV ES,[SI+02]
+    306F3  MOV AX,ES:[BX]        ; item ID
+
+    306F6  SHL AX,1
+    306F8  MOV BX,AX
+    306FA  MOV SI,0C06
+    306FD  ADD BX,[SI+0A]
+    30700  MOV ES,[SI+02]
+
+    30705  FIMULS WORD [BX]      ; C06[item]
+
+    3070E  LCALL 124B:00A6
+
+Logical reconstruction:
+
+    item   = 116A[current + 06]
+    factor = 0C06[item]
+
+    ST(0) = ST(0) * signed_integer(factor)
+
+then:
+
+    124B:00A6(...)
+
+Therefore the exact local chain is:
+
+    Q
+     |
+     | FIMULS signed C06[item]
+     v
+    Q * C06[item]
+     |
+     | LCALL 124B:00A6
+     v
+    downstream integer / combat result
+
+[PROVEN] The operand to FIMULS is explicitly the signed integer stored
+in 0C06[item].
+
+[UNKNOWN] The exact mathematical normalization performed by 124B:00A6.
+
+It is tempting to write:
+
+    Q * C06 / 100
+
+because C06 values look percentage-like.
+
+That is NOT yet executable proof.
+
+There is no directly visible FDIV 100 between FIMULS and the call. The
+normalization may occur inside 124B:00A6 or through another
+representation.
+
+Safe equation:
+
+    Q' = Q * C06[item]
+    result = Normalize_00A6(Q')
+
+NOT YET SAFE:
+
+    result = Q * C06[item] / 100
+
+================================================================ 9.
+124B:00A6
+================================================================
+
+124B:00A6 is immediately downstream of the C06 multiplication.
+
+It also occurs in many other floating-point conversions/scalings,
+including call sites around:
+
+    901C
+    90C1
+    A674
+    D2DE
+    D422
+    F88C
+    104E4
+    11355
+    1186F
+    3070E
+    30732
+    3094E
+    34056
+    3AFC5
+    41ABA
+    49437
+    4FB43
+    4FBE0
+    52CEA
+    52F10
+    53016
+    53131
+    ...
+
+The most useful future method is call-site comparison:
+
+    known FP operation
+          |
+          v
+    124B:00A6
+          |
+          v
+    known/unknown result
+
+If a call site has a known multiplier/divisor/constant, it may reveal
+exactly what 00A6 does.
+
+[UNKNOWN] Do not call it “floor”, “round”, “clamp”, or “divide by 100”
+yet.
+
+Current conservative name:
+
+    124B:00A6 =
+        downstream FPU/result conversion or normalization helper
+
+================================================================ 10.
+124B:001E
+================================================================
+
+Another important helper is:
+
+    124B:001E
+
+It participates in 100-based scaling and later combat scaling.
+
+One important sequence:
+
+    MOV AX,[02E4]
+    SHL AX,1
+    LCALL 124B:001E
+    ...
+    MOV [02E6],AX
+
+Another later sequence:
+
+    MOV AX,[02E6]
+    IMUL [0286]
+    ...
+    LCALL 124B:001E
+    LCALL 124B:00A6
+    ...
+    FISTP [0286]
+
+A particularly clear use:
+
+    MOV AX,[BP-32]
+    IMUL WORD [0286]
+    LCALL 124B:001E
+
+with [BP-32] set to 100, so the input can be:
+
+    100 * 0286
+
+Current conservative interpretation:
+
+    124B:001E = integer scaling / normalization helper
+
+Exact arithmetic remains unresolved.
+
+Do not collapse 001E and 00A6 into the same operation.
+
+================================================================ 11.
+0286 — CENTRAL DOWNSTREAM DAMAGE / EFFECT AMOUNT
+================================================================
+
+[PROVEN]
+
+The ordinary damage-roll loop initializes:
+
+    0286 = 0
+
+Then around physical 0x305EA:
+
+    LEA AX,[BP-38]
+    PUSH AX
+    LCALL 0000:3E32
+    MOV [BP-3C],AX
+
+    MOV AX,[BP-3C]
+    ADD [0286],AX
+
+The loop repeats according to:
+
+    [BP-36]
+
+Therefore:
+
+    0286 = SUM of N random-derived roll results
+
+where each roll uses the die-size in BP-38.
+
+This is not merely a register artifact. 0286 is directly consumed by
+post-resolution protection/body/resource processing.
+
+An independent broad effect resolver also constructs 0286 from an
+incoming effect amount:
+
+    [BP+10] -> 0286
+
+with an optional addition from:
+
+    1E11:05F0
+
+Thus 0286 should be treated as a concrete damage/effect quantity.
+
+================================================================ 12. RNG
+WRAPPER 0000:3E32
+================================================================
+
+The resident wrapper is around physical file offset 0x69F2.
+
+Reconstructed assembly:
+
+    69F2  MOV CX,0002
+    69F5  LCALL 1348:536D
+
+    69FA  PUSH 42C8
+    69FD  PUSH 0000
+    69FF  LCALL 1348:2CDE
+
+    6A04  MOV SI,AX
+    6A06  FLD DWORD [SI]
+
+    6A08  MOV SI,[BP+06]
+    6A0C  FIMUL WORD [SI]
+
+    6A10  LCALL 124B:00A6
+
+    6A16  FADD DWORD DS:[3ECE]
+    6A1A  FISTP WORD [BP-14]
+
+    ...
+    6A29  LRET 2
+
+Logical mathematical structure:
+
+    3E32(N) =
+        FISTP(
+            124B:00A6(
+                RandomFP * N
+            )
+            + FP[DS:3ECE]
+        )
+
+The random core is:
+
+    1348:2CDE
+
+Its exact distribution, seed semantics, and stored state remain
+unresolved.
+
+Also unresolved:
+
+    DS:[3ECE]
+    exact FISTP rounding behavior
+
+================================================================ 13.
+DAMAGE ROLL COUNT
+================================================================
+
+Around physical 0x305C8:
+
+    FILD [BP+0A]
+    FDIV DWORD DS:[4243]
+    FADD DWORD DS:[41DC]
+    FISTP [BP-3A]
+
+The resulting value is copied into:
+
+    [BP-36]
+
+which controls the damage-roll loop.
+
+Thus:
+
+    N =
+        FISTP(
+            [BP+0A] / 4243 + 41DC
+        )
+
+provided [BP+0A] is the hit-margin quantity in that call frame.
+
+The exact values and semantics of:
+
+    4243
+    41DC
+
+are unresolved.
+
+================================================================ 14. HIT
+MARGIN ================================================================
+
+The hit margin was directly reconstructed as:
+
+    X = [BP-2E] - [BP-32]
+
+This is an important input to later resolution.
+
+================================================================ 15.
+CORE COMBAT SCORE
+================================================================
+
+The attack/combat score is substantially reconstructed.
+
+The executable obtains:
+
+    R = 1B7A[0C90[0258]]
+
+Then computes:
+
+    CombatScore =
+        15 * R
+        - 20 * 02C0
+        + 0344
+        + 5 * 116A[current + 0A]
+
+Original disassembly:
+
+    MOV BX,[0258]
+    SHL BX,1
+    MOV SI,0C90
+    ADD BX,[SI+0A]
+    MOV ES,[SI+02]
+    MOV AX,ES:[BX]
+
+    SHL AX,1
+    MOV BX,AX
+    MOV SI,1B7A
+    ADD BX,[SI+0A]
+    MOV ES,[SI+02]
+    MOV AX,ES:[BX]
+
+    MOV CX,000F
+    IMUL CX
+    MOV BX,AX
+
+    MOV AX,0014
+    IMUL WORD PTR [02C0]
+    SUB BX,AX
+
+    ADD BX,[0344]
+    ADD BX,[BP-14]
+    MOV [BP-2E],BX
+
+Therefore:
+
+    R = 1B7A[ C90[0258] ]
+
+    CombatScore =
+        15R - 20*02C0 + 0344 + BP-14
+
+where BP-14 is an additional modifier at this point.
+
+[UNKNOWN] R’s player-facing semantic name. Do not call it “damage”
+without proof.
+
+================================================================ 16.
+FIVE-ARGUMENT COMBAT RESOLVER
+================================================================
+
+A five-argument far call is strongly identified with the
+combat-resolution pipeline:
+
+    PUSH 0204
+    PUSH 01F6
+    PUSH &BP-6C
+    PUSH &BP-74
+    PUSH &BP-2C
+    LCALL 1E11:0056
+
+This routine is an overlay routine.
+
+Do not map 1E11:0056 directly to a flat file address.
+
+Its exact implementation remains unresolved.
+
+The arguments are structurally important:
+
+    argument 1 = pointer to BP-2C
+    argument 2 = pointer to BP-74
+    argument 3 = pointer to BP-6C
+    argument 4 = 01F6
+    argument 5 = 0204
+
+The exact fourth-argument semantics and target implementation remain
+open.
+
+================================================================ 17.
+0204 — FOUR-WAY LOCATION SELECTOR
+================================================================
+
+0204 selects among four 82-entry resource tables:
+
+    1CEA
+    1D18
+    1D46
+    1D74
+
+All four are 82-entry tables.
+
+The current structural interpretation is:
+
+    location/class-dependent damage-die tables
+
+The game also contains body/location vocabulary:
+
+    Head
+    Body
+    Arms
+    Legs
+
+The user reported executable string positions around decimal offsets:
+
+    154934  Head
+    154950  Body
+    154958  Arms
+    154966  Legs
+
+These are useful clues, but exact ordering has not been fully forced.
+
+A separate resource-side location region was associated with:
+
+    8001:1A38
+
+Likely body numbering, based on the later 113C structure:
+
+    1 = Head
+    2 = Chest/Body
+    3 = Arms
+    4 = Legs
+
+but this remains likely rather than completely label-proven.
+
+================================================================ 18.
+DAMAGE TABLE INDEXING
+================================================================
+
+The damage-table lookup is substantially reconstructed.
+
+The structural equation is:
+
+    index =
+        BP-16 * severity
+        + attack_parameter
+
+with WORD addressing:
+
+    die_size =
+        DamageTable[
+            2 * (
+                BP-16 * severity
+                + argument_4
+            )
+        ]
+
+The direct code logic establishes multiplication by 2 because entries
+are WORD-sized.
+
+This is a confirmed indexing formula.
+
+What remains unresolved is the actual numeric content of the DamageTable
+resource and the exact fourth argument.
+
+================================================================ 19.
+SEVERITY MAPPING
+================================================================
+
+The normal severity thresholds are directly code-derived:
+
+    raw < 3       -> severity 1
+    3..7          -> severity 2
+    8..13         -> severity 3
+    14..22        -> severity 4
+    23+           -> severity 5
+
+Do NOT equate these with workmanship ratings 1-5 without separate proof.
+
+They are combat severity levels.
+
+================================================================ 20.
+BP-16 AND 04DD:2DDC
+================================================================
+
+The ordinary path initially sets:
+
+    BP-16 = 24
+
+and calls:
+
+    04DD:2DDC(&BP-16)
+
+Other observed initial inputs to the same helper include:
+
+    12
+    24
+    51 + RNG(5)
+
+IMPORTANT CORRECTION:
+
+An earlier hypothesis said that 04DD:2DDC transforms BP-16 in place
+through the supplied pointer.
+
+That was disproven.
+
+The helper does NOT write back through the supplied BP-16 pointer.
+
+Therefore the exact way 04DD:2DDC affects the later matrix calculation
+remains a structural question.
+
+Do not use the old “in-place BP-16 transformation” model.
+
+================================================================ 21.
+0EB8 — COMBAT MATRIX
+================================================================
+
+Constructor:
+
+    PUSH 0000
+    PUSH 0008
+    PUSH 0000
+    PUSH 0016
+    PUSH 0002
+    PUSH 0102
+    PUSH 0EB8
+    CALL 1348:4034
+
+This establishes a:
+
+    23 rows x 9 columns
+
+matrix.
+
+The orientation was initially misunderstood and later corrected.
+
+Executable indexing:
+
+    MOV AX,[01F6]
+    ADD AX,0003
+    IMUL WORD [0ECA]       ; 0ECA = 9
+    ADD AX,[BP-24]
+    SHL AX,1
+    ...
+    MOV SI,0EB8
+    ...
+    FILD WORD ES:[BX]
+
+Therefore:
+
+    row    = 01F6 + 3
+    column = BP-24
+    stride = 9
+
+and:
+
+    matrix = 23 x 9
+
+This matters because values such as profile 18 are valid row indices
+after the +3 transformation.
+
+================================================================ 22.
+01F6 — COMBAT PROFILE / CLASSIFICATION SELECTOR
+================================================================
+
+01F6 must currently be called a combat profile/classification selector.
+
+It is NOT proven to mean simply “weapon class.”
+
+Observed direct stores include:
+
+    01F6 = 6
+    AX -> 01F6
+    01F6 = 2
+    01F6 = 5
+    01F6 = 6
+    01F6 = 1DD0[C90[...]
+
+Ordinary path:
+
+    0258
+      |
+      v
+    C90[0258]
+      |
+      v
+    1DD0[C90[0258]]
+      |
+      v
+    01F6
+
+Weapon-oriented path:
+
+    116A+06
+      |
+      v
+    D1A[116A+06]
+      |
+      v
+    01F6
+
+Special modes can force 5 or 6.
+
+Observed six-value grouping:
+
+    {1,3}
+    {2,6}
+    {4,5}
+
+These groupings correlate interestingly with three blocks in CRIT.DAT,
+but that is an inference, not proof of manual weapon-class equivalence.
+
+================================================================ 23.
+DAMAGE MATRIX -> DIE SIZE
+================================================================
+
+After the combat resolver determines severity 1..5, it performs the
+location/profile matrix lookup.
+
+Logical form:
+
+    CombatMatrix[
+        BP-16 * severity
+        + *(BP+0C)
+    ]
+
+The resulting value is stored in:
+
+    BP-38
+
+and becomes the die-size / random-roll input.
+
+The exact fourth argument:
+
+    *(BP+0C)
+
+is still unresolved.
+
+Therefore the executable currently proves the route:
+
+    severity
+       +
+    BP-16 / profile parameter
+       |
+       v
+    matrix index
+       |
+       v
+    BP-38
+       |
+       v
+    die size
+
+but not the final weapon-specific numeric dice for every item.
+
+================================================================ 24.
+RESOURCE 0102
+================================================================
+
+Resource-side table:
+
+    0102
+
+It is a 5 x 6 table.
+
+Known values:
+
+    8,  1, 7,  8,  8, 3
+    1,  3, 8,  1,  1, 6
+    2,  9, 3, 20, 1, 4
+    2,  5, 1,  4, 8, 2
+    1,  8, 3, 34, 1, 1
+
+It has been established as a random-roll / die-size parameter table, not
+a direct damage table.
+
+A later static investigation established that 0101 and 0102 are actual
+loaded resources.
+
+However, the actual complete bytes of 0102 have not yet been recovered
+in a final, complete dump.
+
+Therefore do not invent weapon-specific dice from the table.
+
+================================================================ 25.
+DAMAGE ROLL LOOP
+================================================================
+
+The normal sequence is:
+
+    determine die_size -> BP-38
+                |
+                v
+    determine N -> BP-36
+                |
+                v
+    0286 = 0
+                |
+                v
+    repeat N times:
+        3E32(BP-38)
+        add result to 0286
+
+Assembly around 0x305EA:
+
+    LEA AX,[BP-38]
+    PUSH AX
+    LCALL 0000:3E32
+    MOV [BP-3C],AX
+
+    MOV AX,[BP-3C]
+    ADD [0286],AX
+
+The loop is controlled by BP-36.
+
+Thus:
+
+    0286 = SUM_i=1..N RNG_DERIVED(die_size)
+
+This is one of the strongest direct links between the damage table and
+the downstream combat quantity.
+
+================================================================ 26.
+DYNAMIC 02E4 / 02E6 SCALING PATH
+================================================================
+
+Another combat scaling path constructs 02E4 and 02E6.
+
+Assembly:
+
+    MOV WORD [BP-26],0000
+    MOV WORD [BP-22],0028       ; 40
+
+    LEA AX,[BP-22]
+    PUSH AX
+    CALL 0000:3E32
+
+    MOV [BP-24],AX
+    MOV AX,[BP-24]
+    MOV [BP-28],AX
+    ADD [02E4],AX
+
+    MOV WORD [02E6],0000
+    CMP WORD [02E4],0000
+    JLE ...
+
+    MOV AX,[02E4]
+    SHL AX,1
+    LCALL 124B:001E
+    ...
+    MOV [02E6],AX
+
+Therefore:
+
+    R40 = 3E32(40)
+
+    02E4 += R40
+
+    if 02E4 > 0:
+        02E6 = 124B:001E(2 * 02E4)
+    else:
+        02E6 = 0
+
+02E6 is a dynamically computed scaling quantity.
+
+Its player-facing name is unresolved.
+
+================================================================ 27.
+02E4 BANDING
+================================================================
+
+The code classifies 02E4 into bands:
+
+    -1000..-1 -> 1
+    0..35     -> 2
+    36..50    -> 3
+    51..69    -> 4
+    70..85    -> 5
+    86..100   -> 6
+    101..108  -> 7
+    109..115  -> 8
+    116..118  -> 9
+    119..120  -> 10
+
+Then 01F6 is reduced to three profile families:
+
+    01F6 = 1 or 3 -> class 1
+    01F6 = 2 or 6 -> class 2
+    01F6 = 4 or 5 -> class 3
+
+A nested matching loop searches state/profile records.
+
+If no match occurs:
+
+    BP-3C = 10
+
+A later special mapping uses:
+
+    RNG(2) - 1
+
+for special object values 3/4.
+
+This section should be treated as combat-state/effectiveness selection,
+not as a proven direct Damage Factor formula.
+
+================================================================
+28. >100 SPECIAL BRANCH
+================================================================
+
+There is a resolver branch when an input exceeds 100.
+
+The structure is:
+
+    02E4 = 0
+
+    excess = argument - 100
+
+    scaled_excess =
+        124B:001E(2 * excess)
+
+    02E4 =
+        FISTP(
+            scaled_excess + SS:[42CD]
+        )
+
+Then:
+
+    02E4 = max(20, min(80, 02E4))
+
+Then:
+
+    PUSH [BP+0E]
+    CALL 1E11:0026
+
+Immediately:
+
+    FISTP [0286]
+
+This is important.
+
+[PROVEN] The 1E11:0026 call leaves an FP value on the emulator stack and
+the immediate FISTP stores that value into 0286.
+
+Thus 1E11:0026 definitely participates directly in production of a
+concrete 0286 value on this branch.
+
+Later scaling can do:
+
+    FIMUL WORD [BX]
+    FADD SS:[42F4]
+    124B:00A6
+    FADD DS:[41DC]
+    FISTP [0286]
+
+Again, 0286 is a working/scaled combat quantity.
+
+================================================================ 29.
+1E11:0026 — CURRENT STATUS
+================================================================
+
+1E11:0026 is NOT a missing ordinary function.
+
+It is the sixth 6-byte overlay vector in the blCOMBAT1 vector block.
+
+The damage routine invokes it as:
+
+    PUSH [BP+0E]
+    LCALL 1E11:0026
+
+In the relevant path:
+
+    [BP+0E] = &0204
+
+Therefore 0026 receives a pointer to the location/action selection
+structure rather than a literal damage value.
+
+Current best description:
+
+    1E11:0026 =
+        upstream action/location-dependent combat/effect helper
+
+It establishes or modifies the floating-point quantity later subjected
+to the weapon Damage Factor.
+
+NOT PROVEN:
+
+    1E11:0026 = "base damage"
+
+The missing next step is to resolve the vector itself and disassemble
+the actual target procedure.
+
+================================================================ 30.
+FINAL HIGH-MARGIN STAGE
+================================================================
+
+A later high-margin transformation was reconstructed as:
+
+    FINAL =
+        integer_convert(
+            I + I * 02E6
+        )
+
+The exact helper/rounding semantics remain unresolved.
+
+This is distinct from the initial severity and damage-table selection.
+
+================================================================ 31.
+POST-HIT PROTECTION / RESOURCE PIPELINE
+================================================================
+
+The strongest direct anchor is around physical 0x79503.
+
+Reconstructed:
+
+    MOV BX,[025C]
+    SHL BX,1
+    MOV SI,0CBE
+    ...
+    MOV AX,ES:[BX]
+    SUB AX,[0286]
+    ...
+    MOV ES:[BX],AX
+
+Therefore:
+
+    0CBE[025C] -= 0286
+
+[PROVEN]
+
+Do NOT simply call 0CBE “HP”.
+
+The code establishes that it is a current character resource decremented
+by 0286 and that 0CEC is a corresponding maximum/reference array, but
+the exact player-facing meaning is not yet proven.
+
+================================================================ 32.
+241A PROTECTION / ARMOR SUBTRACTION
+================================================================
+
+The post-resolution protection path behaves as:
+
+    if 241A >= 0286:
+        241A -= 0286
+        0286 = 0
+    else:
+        0286 -= 241A
+        241A = 0
+
+This is executable behavior.
+
+[STRONG] 241A behaves like protection/armor in this stage.
+
+[UNKNOWN] The exact relationship between 241A and the armor statistics
+shown to the player.
+
+================================================================ 33.
+113C BODY STRUCTURE
+================================================================
+
+113C is a separate body-state structure.
+
+114E = 9
+
+Therefore:
+
+    record size = 9 WORDs
+                = 18 bytes
+                = 0x12 bytes
+
+Observed record spacing:
+
+    head       +0x00
+    chest/body +0x12
+    arms       +0x24
+    legs       +0x36
+
+Likely body numbering:
+
+    1 = head
+    2 = chest/body
+    3 = arms
+    4 = legs
+
+but exact label ordering remains “likely”, not completely proven.
+
+The direct subtraction path:
+
+    MOV AX,[114E]
+    IMUL [0204]
+
+    MOV SI,[BP+0A]
+    ADD AX,[SI]
+    SHL AX,1
+
+    MOV BX,AX
+    MOV SI,113C
+    ...
+
+    MOV CX,ES:[BX]
+    SUB CX,[0286]
+    MOV ES:[BX],CX
+
+Therefore:
+
+    113C[9 * body + target] -= remaining_0286
+
+This is another direct proof that 0286 is a combat injury quantity.
+
+================================================================ 34.
+SECONDARY INJURY CALCULATION
+================================================================
+
+Immediately after the body subtraction, if remaining damage exceeds 3:
+
+    RNG(20)
+
+and:
+
+    secondary =
+        FISTP(
+            remaining_damage / RNG(20)
+        )
+
+This is separate from the primary 0286 calculation.
+
+There is also evidence that channel 6 of a 1222 matrix participates in a
+temporary secondary injury / critical-pressure path, but its complete
+semantics are unresolved.
+
+================================================================ 35.
+23EC TARGET STATE
+================================================================
+
+Another proven behavior:
+
+    if 23EC[target] != 0:
+        decrement 23EC[target]
+        0286 = 0
+
+Its player-facing meaning is unknown.
+
+Do NOT call it “shield” merely from this behavior.
+
+================================================================ 36.
+CHARACTER RESOURCE GENERATION CONTEXT
+================================================================
+
+Character-generation code around physical 0xAC28–0xAD65 gives:
+
+    class = *arg1
+    C90[index] = class
+    CBE[index] =
+        sum(RandomDerived(6)+4, T_1B7A[class] times)
+    CEC[index] = CBE[index]
+
+Thus:
+
+    CBE = current whole-character resource
+    CEC = corresponding maximum/reference value
+
+Arrays have capacity 100, but active character count is controlled
+elsewhere by 00E0.
+
+The exact player-facing name of CBE should remain cautious.
+
+================================================================ 37.
+CONDITION DESCRIPTOR ARRAYS
+================================================================
+
+Five important runtime descriptor arrays:
+
+    2756
+    26CC
+    26FA
+    2784
+    2728
+
+They are initialized through 1348:4034.
+
+26FA:
+
+    PUSH 0000
+    PUSH 0001
+    PUSH 0002
+    PUSH 0101
+    PUSH 26FA
+    LCALL 1348:4034
+
+2728:
+
+    PUSH 0000
+    PUSH 0001
+    PUSH 0002
+    PUSH 0101
+    PUSH 2728
+    LCALL 1348:4034
+
+The same pattern occurs for 26CC, 2756, 2784, etc.
+
+Inside 1348:4034:
+
+    MOV BX,[BP+06]
+    CMP WORD PTR [BX+02],0000
+    JE ...
+
+    MOV CX,[BP+08]
+    MOV [BX+08],CX
+
+    MOV AX,[BP+0A]
+    MOV [BX+0C],AX
+
+For these descriptors:
+
+    descriptor +08 = 0101
+    descriptor +0C = 0002
+
+Therefore they are WORD-element arrays.
+
+================================================================ 38.
+PER-CHARACTER CONDITION ADDRESSING
+================================================================
+
+Representative access:
+
+    MOV BX,<character index>
+    SHL BX,1
+
+    MOV SI,<descriptor>
+    ADD BX,[SI+0A]
+
+    MOV ES,[SI+02]
+    MOV AX,ES:[BX]
+
+Therefore:
+
+    address =
+        descriptor.backing_offset
+        + 2 * character_index
+
+Each condition descriptor is a WORD-per-character array.
+
+================================================================ 39.
+CONDITION PRESENCE COUNT
+================================================================
+
+At physical approximately 0x7E34D:
+
+    [BP-14] = 0
+
+Each of the five descriptors is checked for >0.
+
+Each positive condition increments [BP-14].
+
+Therefore:
+
+    F =
+        [2756 > 0]
+        + [26CC > 0]
+        + [26FA > 0]
+        + [2784 > 0]
+        + [2728 > 0]
+
+with:
+
+    0 <= F <= 5
+
+This count later feeds attacker-side resolution around approximately
+0x7E861.
+
+================================================================ 40.
+EXACT CONDITION PENALTY FORMULA
+================================================================
+
+The impairment calculation gives:
+
+    0170 -= 30 * 26CC
+    0170 -= 10 * 26FA
+    0170 -= 30 * 2728
+    0170 -= 10 * 2756
+    0170 -= 2784
+
+Therefore:
+
+    0170 =
+        B
+        - 30*(26CC)
+        - 10*(26FA)
+        - 30*(2728)
+        - 10*(2756)
+        - 2784
+
+where B is a preceding base selected from 27B2[…]
+
+0170 is a condition-adjusted combat modifier/effectiveness value.
+
+It is NOT final damage.
+
+It enters later combat-resolution inputs.
+
+First path:
+
+    78E7B MOV AX,[0170]
+    78E7E ADD AX,[BP-1E]
+    78E81 MOV [BP-20],AX
+
+Therefore:
+
+    X1 = RNG + 0170
+
+Second path:
+
+    78EA3 MOV AX,ES:[BX]
+    78EA6 MOV CX,0005
+    78EA9 IMUL CX
+    78EAB ADD AX,[0170]
+    78EAF MOV [BP-22],AX
+
+Therefore:
+
+    X2 = 5 * other_character_quantity + 0170
+
+This is a direct bridge between status effects and combat resolution.
+
+================================================================ 41.
+26FA WRITER
+================================================================
+
+Around COMBAT1 physical offset 0x3BE1:
+
+    MOV BX,[025C]
+    SHL BX,1
+    MOV SI,26FA
+    ADD BX,[SI+0A]
+    MOV ES,[SI+02]
+    MOV AX,ES:[BX]
+
+    MOV SI,[BP+08]
+    ADD AX,[SI]
+    MOV [BP-20],AX
+
+    MOV WORD PTR [BP-22],00FF
+
+    LEA AX,[BP-20]
+    PUSH AX
+    LEA AX,[BP-22]
+    PUSH AX
+    LCALL 0000:3C72
+    MOV [BP-24],AX
+
+    MOV BX,[025C]
+    SHL BX,1
+    MOV SI,26FA
+    ADD BX,[SI+0A]
+    MOV ES,[SI+02]
+    MOV AX,[BP-24]
+    MOV ES:[BX],AX
+
+Therefore:
+
+    26FA[target] =
+        clamp(
+            26FA[target] + Delta,
+            0,
+            255
+        )
+
+This proves 26FA is an accumulated magnitude, not merely a Boolean flag.
+
+================================================================ 42.
+2728 WRITER
+================================================================
+
+Around COMBAT1 physical offset 0x37ED:
+
+    MOV BX,[025C]
+    SHL BX,1
+    MOV SI,2728
+    MOV DX,BX
+    ADD BX,[SI+0A]
+    MOV ES,[SI+02]
+    MOV AX,ES:[BX]
+
+    MOV DI,[BP+06]
+    CMP AX,[DI]
+    JGE 3815
+
+    MOV BX,DX
+    ADD BX,[SI+0A]
+    MOV ES,[SI+02]
+    MOV AX,[DI]
+    MOV ES:[BX],AX
+
+Therefore:
+
+    2728[target] =
+        max(
+            2728[target],
+            Delta
+        )
+
+This proves 2728 is a persistent maximum/worst-severity quantity rather
+than an additive duration.
+
+================================================================ 43.
+CONDITION STATUS DISPLAY
+================================================================
+
+At physical approximately 0x7E34D, all five descriptors are tested for
+>0.
+
+26FA path:
+
+    51D95 MOV SI,[BP+06]
+    51D98 MOV BX,[SI]
+    51D9A SHL BX,1
+    51D9C MOV SI,26FA
+    51D9F ADD BX,[SI+0A]
+    51DA2 MOV ES,[SI+02]
+    51DA5 CMP WORD PTR ES:[BX],0000
+    51DA9 JLE 51DBE
+
+    51DAB INC WORD PTR [BP-14]
+    51DAE LEA AX,[BP-18]
+    51DB1 PUSH AX
+    51DB2 LEA AX,[BP-18]
+    51DB5 PUSH AX
+    51DB6 PUSH 70CC
+    51DB9 LCALL 1348:0C6A
+
+2728 path:
+
+    51DE7 MOV SI,[BP+06]
+    51DEA MOV BX,[SI]
+    51DEC SHL BX,1
+    51DEE MOV SI,2728
+    51DF1 ADD BX,[SI+0A]
+    51DF4 MOV ES,[SI+02]
+    51DF7 CMP WORD PTR ES:[BX],0000
+    51DFB JLE 51E10
+
+    51DFD INC WORD PTR [BP-14]
+    51E00 LEA AX,[BP-18]
+    51E03 PUSH AX
+    51E04 LEA AX,[BP-18]
+    51E07 PUSH AX
+    51E08 PUSH 70F6
+    51E0B LCALL 1348:0C6A
+
+Complete status destination mapping:
+
+    2756 -> 70B0
+    26CC -> 70BE
+    26FA -> 70CC
+    2784 -> 70E8
+    2728 -> 70F6
+
+If any conditions exist:
+
+    PUSH BP-18
+    PUSH BP-18
+    PUSH 7112
+    LCALL 1348:0C6A
+
+CRITICAL CORRECTION: 70B0, 70BE, 70CC, 70E8, and 70F6 are mutable
+string-object destinations, not direct text IDs.
+
+Do not say:
+
+    26FA -> 70CC -> "Paralyzed"
+
+as though 70CC itself were the text ID.
+
+Correct chain:
+
+    condition value > 0
+          |
+          v
+    status display
+          |
+          v
+    string object supplied in/through BP-18
+          |
+          v
+    1348:0C6A
+          |
+          v
+    mutable destination string object
+
+The producer of the string object in BP-18 is still a target for further
+reverse engineering.
+
+================================================================ 44.
+STRING ROUTINE 1348:0C6A
+================================================================
+
+Physical approximately 0x16CAA:
+
+    16CAA PUSH BP
+    16CAB MOV BP,SP
+    16CAD PUSH [BP+08]
+    16CB0 PUSH [BP+06]
+    16CB3 LCALL 1348:0C2D
+    16CB8 PUSH AX
+    16CB9 PUSH [BP+0A]
+    16CBC LCALL 1348:0BF4
+    16CC1 POP BP
+    16CC2 LRET 0006
+
+Logical structure:
+
+    result = 0C2D(arg1,arg2)
+    0BF4(result,arg3)
+
+================================================================ 45.
+STRING ROUTINE 1348:0C2D
+================================================================
+
+Physical approximately 0x16C6D.
+
+    16C6D PUSH BP
+    16C6E MOV BP,SP
+    16C70 PUSH SI
+    16C71 PUSH DI
+    16C72 PUSH ES
+    16C73 PUSH DS
+    16C74 POP ES
+
+    16C75 MOV SI,[BP+08]
+    16C78 MOV DI,[BP+06]
+
+    16C7B MOV BX,[SI]
+    16C7D ADD BX,[DI]
+    16C7F JO 16CA7
+
+    16C81 CALL 1794D
+    16C84 XCHG DI,DX
+    16C86 PUSH BX
+    16C87 CALL 16C97
+    16C8A MOV SI,DX
+    16C8C CALL 16C97
+
+Helper at 16C97:
+
+    MOV BX,SI
+    LODSW
+    XCHG AX,CX
+    LODSW
+    XCHG AX,SI
+    SHR CX,1
+    REP MOVSW
+    JAE ...
+    MOVSB
+
+This establishes dynamic string objects containing a WORD length and
+associated storage/pointer information.
+
+0C2D concatenates the contents of two string objects.
+
+================================================================ 46.
+STRING ROUTINE 1348:0BF4
+================================================================
+
+Physical approximately 0x16C34:
+
+    16C34 PUSH BP
+    16C35 MOV BP,SP
+    16C37 MOV BX,[BP+08]
+    16C3A CALL 17986
+    16C3D JAE 16C64
+    16C3F XCHG BX,DX
+    16C41 MOV BX,[BP+06]
+    16C44 CALL 17A1F
+    16C47 XCHG BX,DX
+    16C49 MOV CX,[BX]
+    16C4B MOV AX,[BX+02]
+    16C4E XCHG BX,DX
+    16C50 MOV [BX],CX
+    16C52 MOV [BX+02],AX
+    16C55 JCXZ 16C60
+    16C57 XCHG AX,BX
+    16C58 MOV [BX-02],AX
+    16C5B XCHG BX,DX
+    16C5D CALL 179E6
+    16C60 POP BP
+    16C61 LRET 0004
+
+This manages/moves string objects and memory/reference information.
+
+It is NOT itself proven to be the condition-name lookup.
+
+================================================================ 47.
+EXECUTABLE STRING TABLE
+================================================================
+
+A main executable string table exists around physical 0x26702.
+
+Record format:
+
+    WORD length
+    WORD logical string offset
+    string bytes
+
+Relevant records:
+
+    physical 26788
+        length 12
+        logical offset 49BC
+        "Not Bleeding"
+
+    physical 26798
+        length 12
+        logical offset 49CC
+        "Bleeding For"
+
+    physical 267B2
+        length 12
+        logical offset 49E6
+        "Not Poisoned"
+
+    physical 267C2
+        length 14
+        logical offset 49F6
+        "Poisoned! Lvl("
+
+    physical 26986
+        length 11
+        logical offset 4BBA
+        "Unconscious"
+
+    physical 26996
+        length 15
+        logical offset 4BCA
+        "Not Unconscious"
+
+    physical 269AA
+        length 9
+        logical offset 4BDE
+        "Paralyzed"
+
+    physical 269B8
+        length 13
+        logical offset 4BEC
+        "Not Paralyzed"
+
+Raw Paralyzed record:
+
+    09 00 DE 4B
+    50 61 72 61 6C 79 7A 65 64 00
+
+Raw Not Paralyzed record:
+
+    0D 00 EC 4B
+    4E 6F 74 20 50 61 72 61 6C 79 7A 65 64 00
+
+================================================================ 48.
+SEPARATE EXECUTABLE MESSAGE TABLE
+================================================================
+
+Around physical 0x29F60:
+
+    0D 00 94 81 20 "is Poisoned!" 00
+    0E 00 A6 81 20 "is Paralyzed!" 00
+
+This independently confirms the gameplay-facing terms Poisoned and
+Paralyzed.
+
+================================================================ 49.
+STEEL1.MK1 STATUS STRINGS
+================================================================
+
+Around resource offsets:
+
+    0x90CA6  Left Leg
+    0x90CB0  Left Arm
+    0x90CBA  Right Leg
+    0x90CC5  Right Arm
+    0x90CD0  Bleeding
+    0x90CDA  Poisoned
+    0x90CE4  Paralyzed
+
+Raw sequence:
+
+    Left Leg
+    Left Arm
+    Right Leg
+    Right Arm
+    Bleeding
+    Poisoned
+    Paralyzed
+
+This independently corroborates the gameplay-facing condition
+vocabulary.
+
+================================================================ 50.
+CONDITION IDENTIFICATIONS
+================================================================
+
+2756: STUNNED — high confidence
+
+Evidence: * status counter behavior * decrement path * explicit effect
+ID 6 * executable strings “Stunned” / “is stunned”
+
+26CC: BLEEDING — high confidence
+
+Evidence: * accumulated value * 30x combat penalty * status display *
+executable/resource text
+
+2784: POISONED — high confidence
+
+Evidence: * poison decay path * penalty equal to the value * status
+display * executable/resource text
+
+26FA: PARALYZED / PARALYSIS — very high confidence
+
+Evidence: * persistent per-character accumulator * clamp 0..255 * 10x
+combat penalty * status display * “Paralyzed” / “Not Paralyzed”
+executable strings * “Paralyzed” in Steel1.MK1
+
+2728: exact gameplay name unresolved
+
+Proven: * persistent per-character maximum/worst-severity quantity *
+displayed if >0 * 30x combat penalty
+
+================================================================ 51.
+ARMOR / PROTECTION RESOURCE STRUCTURE
+================================================================
+
+Resource armor structure:
+
+    4 categories x 18 = 72
+
+Known relationships:
+
+    names       -> 0B7C
+    protection  -> 0BAA
+    weight      -> 20DE
+
+Observed equipment values supplied during the investigation:
+
+    Buckler:
+        weight 7 lb
+        shield str 4
+        hands 1
+
+    Round shield:
+        weight 10 lb
+        shield str 10
+        hands 1
+
+    +5 Mail Leg greaves:
+        weight 7 lb
+        Legs armor 8
+
+    Banded Mail:
+        26 lb
+        Chest protection 14
+
+    Leather boots:
+        3 lb
+        Legs protection 2
+
+    Chain gloves:
+        4 lb
+        Arms protection 5
+
+    Leather skirt:
+        4 lb
+        Legs protection 4
+
+The exact raw-armor -> effective-armor transformation is unresolved.
+
+================================================================ 52.
+SPELL RESOURCE STRUCTURE
+================================================================
+
+Resource investigation identified:
+
+    60 spells total
+    20 Karma
+    20 Essence
+    20 Power
+
+The exact spell-table structure and combat usage are less fully
+disassembled than the weapon/condition paths.
+
+================================================================ 53.
+RESOURCE LOADING / 0101 / 0102
+================================================================
+
+0101 and 0102 are actual loaded resources.
+
+0102 is particularly important because it is the likely resource
+supplying the numeric damage/die table that will turn the recovered
+matrix indexing into concrete dice.
+
+The loader work established:
+
+    1348 = primarily memory manager
+    1348:4034 = descriptor/allocator
+    archive reading = elsewhere
+    STEEL1.MK1 = main resource archive
+    CRIT.DAT = critical/injury description text, not assumed numeric table
+
+CRIT.DAT begins with literal text resembling critical/injury
+descriptions.
+
+Do not assume CRIT.DAT contains the numeric damage table.
+
+================================================================ 54.
+COMPLETE CURRENT DAMAGE PATH
+================================================================
+
+The most defensible current model is:
+
+    1. Select attacker / action / item
+                |
+                v
+    2. Obtain item/action properties
+                |
+                +--> item ID = 116A[current+06]
+                |
+                +--> C06[item] = Damage Factor
+                |
+                +--> profile/category inputs
+                |
+                v
+    3. Compute combat score
+                |
+                v
+       CombatScore =
+           15*R - 20*02C0 + 0344 + 5*116A[current+0A]
+                |
+                v
+    4. Resolve hit / combat margin
+                |
+                v
+       X = [BP-2E] - [BP-32]
+                |
+                v
+    5. Resolve combat severity
+                |
+                v
+       severity:
+           <3       -> 1
+           3..7     -> 2
+           8..13    -> 3
+           14..22   -> 4
+           >=23     -> 5
+                |
+                v
+    6. Determine BP-16 / attack parameter
+                |
+                v
+    7. Four-way location table selection
+           0204 -> 1CEA / 1D18 / 1D46 / 1D74
+                |
+                v
+    8. Damage matrix lookup
+           DamageTable[
+             2*(BP-16*severity + attack_parameter)
+           ]
+                |
+                v
+       die_size = BP-38
+                |
+                v
+    9. Determine N
+           N = FISTP([BP+0A]/4243 + 41DC)
+                |
+                v
+
+10. Repeated RNG 3E32(die_size) | v
+11. Accumulate 0286 = SUM N rolls | v
+12. Branch-dependent FP/state scaling examples include: Q * C06[item] |
+    v 124B:00A6 | v concrete/scaled combat quantity | v
+13. Protection 241A absorbs/subtracts 0286 | v
+14. Body / target state 113C[body,target] -= remaining 0286 and/or
+    0CBE[target] -= 0286 | v
+15. Secondary injury path when applicable
+
+The C06 path is not yet completely merged mathematically with the
+initial damage-roll path. The executable proves the local multiplication
+and the downstream role of 0286, but exact intermediate transformations
+remain.
+
+================================================================ 55.
+CRITICAL 0C06 SUBPATH
+================================================================
+
+The strongest defensible subpath is:
+
+    upstream FPU quantity Q
+              |
+              v
+    FIMULS signed_integer(0C06[item])
+              |
+              v
+        Q * C06[item]
+              |
+              v
+        124B:00A6
+              |
+              v
+       scaled integer/result
+              |
+              v
+         0286 / later
+         combat scaling
+
+This is the exact placement of the Damage Factor currently supported by
+executable evidence.
+
+The natural hypothesis:
+
+    Q * C06 / 100
+
+remains a hypothesis only.
+
+================================================================ 56.
+CRITICAL 1E11:0026 SUBPATH
+================================================================
+
+The other important chain is:
+
+    [BP+0E] = &0204
+              |
+              v
+       LCALL 1E11:0026
+              |
+              v
+        FP value / state
+              |
+              v
+          FISTP 0286
+              |
+              v
+      protection / body /
+      target-state processing
+
+This proves that 1E11:0026 can directly produce the value stored into
+0286 on the special branch.
+
+However, its exact internal formula is unknown.
+
+================================================================ 57.
+NEGATIVE FINDINGS / THINGS THAT WERE DISPROVEN
+================================================================
+
+1.  DO NOT map overlay far addresses directly to file offsets.
+
+2.  70CC and 70F6 are NOT direct text IDs.
+
+3.  Do not call 0CBE universally “HP”.
+
+4.  Do not call 0286 universally the final displayed damage.
+
+5.  Do not call R = 1B7A[…] “damage”.
+
+6.  Do not call 01F6 simply a six-valued weapon-class table.
+
+7.  Do not assume severity 1..5 equals workmanship 1..5.
+
+8.  Do not assume 04DD:2DDC modifies BP-16 in place. That hypothesis was
+    disproven.
+
+9.  Do not map 1E11:0056 directly to a flat file location.
+
+10. Do not assume body indices without the corresponding code evidence.
+
+11. Do not infer C06 / 100 merely because C06 values look like
+    percentages.
+
+12. Do not conflate C06 with the BaseHit coefficient.
+
+13. Do not conflate C06 with 0A3A.
+
+14. Do not assume the three 01F6 families are equivalent to the manual’s
+    four weapon classes.
+
+15. Do not assume descriptor capacity equals active character count.
+
+16. Do not call 23EC “shield” merely from its decrement behavior.
+
+17. Do not call 1E11:0026 “base damage” until its target routine is
+    decoded.
+
+================================================================ 58.
+CURRENT UNRESOLVED TARGETS
+================================================================
+
+Highest priority:
+
+    A. Resolve 1E11:0026 vector -> actual target procedure.
+       This should reveal the upstream FP quantity / transformation.
+
+    B. Decode 124B:00A6.
+       This is the most important unresolved helper for the C06 Damage Factor.
+
+    C. Decode 124B:001E.
+       Needed for the later 02E4/02E6 scaling chain.
+
+    D. Recover the complete 0102 DamageTable resource bytes.
+       Then map exact weapon/location/profile combinations to dice.
+
+    E. Fully reconstruct BP-16 and the fourth damage-resolver argument.
+
+    F. Determine exact values/semantics of:
+           DS:[3ECE]
+           DS:[41BA]
+           DS:[41BE]
+           DS:[41DC]
+           DS:[4243]
+           DS:[42CD]
+           DS:[42F4]
+
+    G. Determine exact FISTP rounding/truncation behavior.
+
+    H. Resolve exact raw armor -> effective armor transformation.
+
+    I. Trace the producer of the string object at BP-18 and recover the
+       logical string IDs feeding:
+           70B0
+           70BE
+           70CC
+           70E8
+           70F6
+
+    J. Identify the gameplay name of 2728.
+
+================================================================ 59.
+RECOMMENDED ORDER FOR COMPLETING THE WHOLE DAMAGE ROUTINE
+================================================================
+
+The work should continue as one continuous damage-path investigation.
+
+Step 1: Decode the blCOMBAT1 vector block and resolve 1E11:0026.
+
+Step 2: Disassemble the actual 0026 target procedure and document every
+input, every memory read, every FP stack operation, and its exact
+output.
+
+Step 3: Follow that output directly into the C06 multiplication.
+
+Step 4: Decode 124B:00A6 by comparing call sites where its preceding FP
+value is independently known.
+
+Step 5: Establish the exact mathematical operation at:
+
+        FIMULS C06[item]
+        -> 124B:00A6
+
+Step 6: Reconstruct the path from that result to 0286.
+
+Step 7: Dump the complete 0102 DamageTable and map:
+
+        BP-16
+        severity
+        attack_parameter
+        0204/location
+
+    to actual numeric die sizes.
+
+Step 8: Resolve N and the exact RNG semantics.
+
+Step 9: Reconstruct armor/protection and body-state subtraction
+completely.
+
+Step 10: Only then derive closed-form weapon-by-weapon damage formulas.
+
+================================================================ 60.
+BOTTOM LINE
+================================================================
+
+The strongest conclusions currently supported by direct executable
+evidence are:
+
+    1. 0C06[item] is definitively the item's Damage Factor.
+
+    2. The item ID comes from 116A+06.
+
+    3. Combat directly performs:
+
+           FIMULS signed_integer(0C06[item])
+
+       on an active floating-point quantity.
+
+    4. 124B:00A6 is immediately downstream of that multiplication.
+
+    5. The exact arithmetic performed by 00A6 is still unknown.
+
+    6. 0286 is a concrete downstream damage/effect quantity.
+
+    7. 0286 is accumulated from repeated random-derived rolls in the normal
+       path.
+
+    8. 0286 is directly consumed by protection/body/resource processing.
+
+    9. The normal severity mapping is:
+
+           <3, 3-7, 8-13, 14-22, >=23
+           -> 1, 2, 3, 4, 5
+
+10. The damage-table indexing is:
+
+        DamageTable[
+            2*(BP-16*severity + attack_parameter)
+        ]
+
+11. Four 82-entry tables are selected through 0204:
+
+        1CEA
+        1D18
+        1D46
+        1D74
+
+12. 3E32 produces a random-derived integer using:
+
+        FISTP(
+            124B:00A6(RandomFP*N) + FP[3ECE]
+        )
+
+13. 0170 contains a directly proven condition penalty:
+
+        -30*26CC
+        -10*26FA
+        -30*2728
+        -10*2756
+        -1*2784
+
+14. 26FA is very strongly proven to be paralysis.
+
+15. 26CC is bleeding, 2784 is poisoned, 2756 is stunned, and 2728
+    remains unidentified.
+
+16. 1E11:0026 is an overlay vector, not a missing ordinary function.
+
+17. The immediate strategic target is the actual implementation behind
+    1E11:0026, followed by 124B:00A6.
+
+The complete closed-form damage formula has NOT yet been recovered.
+
+The correct current model is therefore:
+
+    combat state
+         |
+         v
+    hit/severity/location/profile resolution
+         |
+         v
+    damage-table / die-size selection
+         |
+         v
+    repeated random rolls
+         |
+         v
+        0286
+         |
+         +------------------------------+
+         |                              |
+         v                              v
+    protection/body              C06-related FP
+    state processing             scaling branches
+                                        |
+                                        v
+                                   124B:00A6
+                                        |
+                                        v
+                                   scaled result
+                                        |
+                                        v
+                                   target effects
+
+The central reverse-engineering objective remains to close the two
+biggest gaps:
+
+    1E11:0026 exact implementation
+    124B:00A6 exact normalization
+
+Only after those are resolved can the entire combat damage routine be
+stated as a mathematically exact, executable-proven formula.
